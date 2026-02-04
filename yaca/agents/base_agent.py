@@ -112,16 +112,33 @@ class BaseAgent:
         self.reset_conversation()
         self.logger.debug("__init__ done")
 
+    def log(self, msg: str, *args, **kwargs) -> None:
+        self.logger.debug(msg, *args, **kwargs)
+
     def _setup_debug_file_logging(self) -> None:
         """Ensure a debug file handler is configured for the `yaca` logger."""
         base_logger = logging.getLogger("yaca")
         base_logger.setLevel(logging.DEBUG)
 
-        for h in base_logger.handlers:
-            if isinstance(h, logging.FileHandler) and getattr(
-                h, "baseFilename", None
-            ) == os.path.abspath(self.DEBUG_FILE):
-                return
+        for h in list(base_logger.handlers):
+            if isinstance(h, logging.StreamHandler) and not isinstance(
+                h, logging.FileHandler
+            ):
+                base_logger.removeHandler(h)
+
+        existing_file_handlers = [
+            h
+            for h in base_logger.handlers
+            if isinstance(h, logging.FileHandler)
+            and getattr(h, "baseFilename", None) == os.path.abspath(self.DEBUG_FILE)
+        ]
+        if len(existing_file_handlers) == 1:
+            return
+
+        for h in list(base_logger.handlers):
+            if isinstance(h, logging.FileHandler) and getattr(h, "baseFilename", None):
+                if os.path.abspath(h.baseFilename) == os.path.abspath(self.DEBUG_FILE):
+                    base_logger.removeHandler(h)
 
         # resetting the debug file
         open(self.DEBUG_FILE, "w", encoding="utf-8").close()
@@ -134,12 +151,6 @@ class BaseAgent:
             )
         )
         base_logger.addHandler(file_handler)
-
-        for h in base_logger.handlers:
-            if isinstance(h, logging.StreamHandler) and not isinstance(
-                h, logging.FileHandler
-            ):
-                h.setLevel(logging.INFO)
 
         self.logger.debug(
             f"{self.name} debug file logging enabled path=%s", self.DEBUG_FILE
@@ -154,18 +165,18 @@ class BaseAgent:
             raise TypeError("run_kwargs must be a dict")
 
         name = f"{name} [{str(uuid.uuid4()).split('-')[0]}]"
-        self.status_message = f"Running subagent {self.name}"
+        self.status_message = f"Running subagent {agent.name}"
         self.running_subagents[name] = agent
         try:
             return agent(**run_kwargs)
         finally:
-            self.status_message = f"Subagent {self.name} done"
+            self.status_message = f"Subagent {agent.name} done"
             self.running_subagents.pop(name, None)
 
     def request_cancel(self) -> None:
         """Request cooperative cancellation of the current agent processing."""
         self._cancel_event.set()
-        for agent in self.running_subagents.value():
+        for agent in self.running_subagents.values():
             agent.request_cancel()
 
         self.running_subagents.clear()

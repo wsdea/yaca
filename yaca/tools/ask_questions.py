@@ -29,7 +29,7 @@ def validate_questions(agent, questions: str) -> str:
 
 def ask_questions_tool(agent, message: str):
     # Do not change the docstring as it's imported for tool calling, do not remove this comment
-    """Tool to use when you need clarification about what the user wants. Only use this tool after you already tried understanding the user's intent with other tools such as file reading, search, etc. Use markdown formatting. Use clickable links when citing files.
+    """Tool to use when you need clarification about what the user wants or after coding to ask a follow-up question. Only use this tool after you already tried understanding the user's intent with other tools such as file reading, search, etc. Use markdown formatting. Use clickable links when citing files.
 
     Args:
         - message (str): The message to display. It can consist of multiple questions. If so, give a number to each questions. For each question, propose 2-4 answers (give them a letter).

@@ -32,7 +32,7 @@ class LLMClient:
         llm_debug_folder=None,
         llm_cache_dir=None,
     ):
-        print("LLM init")
+
         self.model_name = model_name
         self.max_input_tokens = MAX_INPUT_TOKENS_PER_MODEL[self.model_name]
 
