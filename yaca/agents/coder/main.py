@@ -31,6 +31,12 @@ class YacaCoder(BaseAgent):
             "attempt_completion",
         )
 
+    def reset(self) -> None:
+        super().reset()
+        self.open_files = []
+        self.last_list_files = "**"
+        self.todo_list = []
+
     # Context management
     def build_system_message(self) -> str:
         """Build the system prompt including tool descriptions and guidelines."""

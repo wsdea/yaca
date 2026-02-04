@@ -18,6 +18,11 @@ class YacaPlanner(BaseAgent):
             "start_coding_task",
         )
 
+    def reset(self) -> None:
+        super().reset()
+        self.open_files = []
+        self.last_list_files = "**"
+
     # Context management
     def build_system_message(self) -> str:
         """Build the system prompt including tool descriptions and guidelines."""
