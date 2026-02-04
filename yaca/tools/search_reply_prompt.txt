@@ -1,0 +1,17 @@
+A coding agent wants to understand better the file structure of the project.
+
+Here is his request :
+{{REQUEST}}
+
+I used the search function and here are the results:
+
+{{SEARCH_RESULTS}}
+
+
+Based on the search result, identify the files that exactly relevant to the query of the coding agent. If no files are relevant, explain why and return an empty list.
+Then return a json dict in this format
+```json
+{
+    "relevant_files" : list[str]
+}
+```

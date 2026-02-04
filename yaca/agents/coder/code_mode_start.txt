@@ -1,0 +1,13 @@
+Let's do our todo.
+
+## Coding Standards
+- Do not modify code unless asked to. This includes adding docstring, typing, etc.
+- Typing : only type function signatures, but keep it simple. Don't use typing module, only built-ins (eg. `list` instead of `List`)
+- Do not add comments, but keep existing ones – rely on docstrings.
+- Use **`os` and `glob`** for filesystem operations; avoid `pathlib`.
+- Prefer **relative imports** (`from .module import X`).
+- Keep each module **< 500 lines**; extract helpers to new modules when needed.
+- Do not add tests, unless asked to.
+- Don't be lazy, refacto if it's best. Do not introduce stubs, placeholders, lazy implementations, and code that may silence errors.
+- Avoid using getattr or dict.get as they introduce silent errors.
+- Consider edgecases

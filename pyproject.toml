@@ -1,0 +1,64 @@
+[project]
+name = "yaca"
+version = "0.1.0"
+description = "YACA Coding agent"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "wsdea" }]
+keywords = ["coding-agent", "cli", "claude coode", "codex"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: OS Independent",
+]
+urls = { "Repository" = "https://github.com/wsdea/yaca", "Issues" = "https://github.com/wsdea/yaca/issues" }
+dependencies = [
+    "httpx==0.27.0",
+    "jinja2>=3.1.6",
+    "openai==1.69.0",
+    "orjson>=3.11.1",
+    "PyYAML>=6.0.0",
+    "requests==2.32.3",
+    "requests-oauthlib==2.0.0",
+    "rich>=13.0.0",
+    "textual>=0.60.0",
+]
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project.scripts]
+yaca = "yaca.ui:main"
+
+[tool.setuptools]
+package-dir = {"" = "."}
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["yaca*"]
+
+[tool.setuptools.package-data]
+yaca = ["**/*.tcss", "**/*.txt"]
+
+[project.optional-dependencies]
+dev = [
+    "ipykernel>=7.1.0",
+    "pytest==8.3.4",
+    "pytest-asyncio>=0.23.0",
+    "pytest-cov==6.0.0",
+    "requests-mock==1.12.1",
+    "ruff==0.8.3",
+]
+test = [
+    "pytest==8.3.4",
+    "pytest-asyncio>=0.23.0",
+    "pytest-cov==6.0.0",
+    "requests-mock==1.12.1",
+]

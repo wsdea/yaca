@@ -1,0 +1,8 @@
+*.pyc
+.*cache/**
+.yaca/.state
+*.ipynb
+*.egg*
+.env
+tests/projects_mirror
+build

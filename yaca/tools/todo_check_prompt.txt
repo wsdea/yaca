@@ -1,0 +1,33 @@
+Here is the user request:
+
+<user_request>
+{{USER_REQUEST}}
+</user_request>
+
+To fulfill this request, a todo list has been created :
+
+<todo>
+{{TODO}}
+</todo>
+
+But we need to double check these rules :
+- No documentation updates, unless user put it in its request (other text files are ok)
+- The todo must not include items to run tests or terminal commands. Only coding is allowed. Adding documentation about running commands is allowed if specified by the user.
+- The todo must be created only when the task is well defined. Todo items must not contain assumptions or unclear paths. For example, the todo must not include items to search for something, read a file, or clarify something.
+- Todo items must be specific and well-defined. For example, they cannot include stuff like "Improving ui with modern stuff (eg. spinners, flat icons, etc)". If uncertain, we should ask the user first what he wants.
+- Todo items must not be large tasks. Split large tasks into multiple todo items. Multiple edits on one file is allowed though.
+
+If you think the todo is valid against these rules, identify the relevant files to open and reply in this format :
+```json
+{
+    "todo_is_ok" : true,
+    "relevant_files" : list[str]
+}
+```
+If the current todo list does not follow these rules, write a quick explaination to guide the todo refinement process. In your explaination, only talk about the violated rules. Reply in this format:
+```json
+{
+    "todo_is_ok" : false,
+    "explaination": str
+}
+```

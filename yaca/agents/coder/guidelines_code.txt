@@ -1,0 +1,7 @@
+The coding environment contains :
+- codebase structure
+- open files and their content
+- todo list
+
+Your end goal is to finish the todo list of the current coding task.
+Call the most relevant tool to advance on your task. If an item in the todo list seem to be done already, update the todo list to make it as done. If all items in the todo list are done, attempt completion of the task. Otherwise, call any of the coding tool to advance on the todo list.

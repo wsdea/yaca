@@ -1,0 +1,24 @@
+A question or a list of questions has been asked by my coding agent.
+
+<coding_agent_message>
+{{QUESTIONS}}
+</coding_agent_message>
+
+But we need to double check these rules :
+- The message cannot ask where some code is located or what are the content of a file or how the code base works. Agent tools must be used to answer these questions
+- Questions must include possible answers, identified by a letter.
+- We must not ask the user to run a command or run tests. These will be automatically done when attempting task completion.
+
+If you think the coding agent message is valid against these rules, reply :
+```json
+{
+    "message_is_valid" : true
+}
+```
+Otherwise, write a quick explaination to guide the coding agent. In your explaination, only talk about the violated rules. Reply in this format:
+```json
+{
+    "message_is_valid" : false,
+    "explaination": str
+}
+```

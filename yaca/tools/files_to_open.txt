@@ -1,0 +1,15 @@
+You are an autonomous coding agent, helping a user with a given task with the help of tools. Here is the conversation so far.
+
+<conversation>
+{{CONVERSATION}}
+</conversation>
+
+In order to complete this task, we need to open files in the coding editor. Return the list of files to open and to create to do this coding task.
+Answer in this json format :
+
+```json
+{
+    "files_to_open" : list[str],
+    "files_to_create" : list[str]
+}
+```

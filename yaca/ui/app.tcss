@@ -1,0 +1,261 @@
+Screen {
+  layout: vertical;
+  overflow-x: hidden;
+  background: #0f172a;
+  color: #e5e7eb;
+}
+
+#top {
+  height: auto;
+  padding: 0 1;
+  overflow-x: hidden;
+  background: #111827;
+  color: #e5e7eb;
+  border: heavy #1f2937;
+}
+
+#status_row {
+  height: auto;
+  align: left middle;
+}
+
+#status {
+  height: auto;
+  padding: 0 1 0 0;
+  margin: 0;
+  color: #93c5fd;
+}
+
+#open_files {
+  height: auto;
+  padding: 0;
+  margin: 0;
+  overflow-x: hidden;
+  text-wrap: wrap;
+  color: #d1d5db;
+  border: none;
+  outline: none;
+  background: transparent;
+}
+
+#open_files:focus,
+#open_files:focus-within,
+#open_files:hover {
+  background: transparent;
+  border: none;
+  outline: none;
+}
+
+#open_files > CollapsibleTitle,
+#open_files > CollapsibleTitle > CollapsibleTitleToggle,
+#open_files > CollapsibleTitle > CollapsibleTitleLabel,
+#open_files CollapsibleTitle,
+#open_files CollapsibleTitleToggle,
+#open_files CollapsibleTitleLabel,
+#open_files CollapsibleTitle:focus,
+#open_files CollapsibleTitle:focus-within,
+#open_files CollapsibleTitle:hover,
+#open_files CollapsibleTitleToggle:focus,
+#open_files CollapsibleTitleToggle:focus-within,
+#open_files CollapsibleTitleToggle:hover,
+#open_files CollapsibleTitleLabel:focus,
+#open_files CollapsibleTitleLabel:focus-within,
+#open_files CollapsibleTitleLabel:hover {
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  color: #93c5fd;
+  border: none;
+  outline: none;
+}
+
+#open_files > CollapsibleContent,
+#open_files CollapsibleContent,
+#open_files CollapsibleContent:focus,
+#open_files CollapsibleContent:focus-within,
+#open_files CollapsibleContent:hover {
+  padding: 0;
+  padding-top: 0;
+  margin: 0;
+  margin-top: 0;
+  background: transparent;
+  border: none;
+  outline: none;
+}
+
+#open_files > CollapsibleContent > *:first-child,
+#open_files CollapsibleContent > *:first-child {
+  margin-top: 0;
+  padding-top: 0;
+}
+
+#open_files_content {
+  padding: 0;
+  margin: 0;
+}
+
+#running_subagents {
+  height: auto;
+  padding: 0;
+  margin: 0;
+  overflow-x: hidden;
+  text-wrap: wrap;
+  color: #d1d5db;
+  border: none;
+  outline: none;
+  background: transparent;
+}
+
+#running_subagents:focus,
+#running_subagents:focus-within,
+#running_subagents:hover {
+  background: transparent;
+  border: none;
+  outline: none;
+}
+
+#running_subagents > CollapsibleTitle,
+#running_subagents > CollapsibleTitle > CollapsibleTitleToggle,
+#running_subagents > CollapsibleTitle > CollapsibleTitleLabel,
+#running_subagents CollapsibleTitle,
+#running_subagents CollapsibleTitleToggle,
+#running_subagents CollapsibleTitleLabel,
+#running_subagents CollapsibleTitle:focus,
+#running_subagents CollapsibleTitle:focus-within,
+#running_subagents CollapsibleTitle:hover,
+#running_subagents CollapsibleTitleToggle:focus,
+#running_subagents CollapsibleTitleToggle:focus-within,
+#running_subagents CollapsibleTitleToggle:hover,
+#running_subagents CollapsibleTitleLabel:focus,
+#running_subagents CollapsibleTitleLabel:focus-within,
+#running_subagents CollapsibleTitleLabel:hover {
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  color: #93c5fd;
+  border: none;
+  outline: none;
+}
+
+#running_subagents > CollapsibleContent,
+#running_subagents CollapsibleContent,
+#running_subagents CollapsibleContent:focus,
+#running_subagents CollapsibleContent:focus-within,
+#running_subagents CollapsibleContent:hover {
+  padding: 0;
+  padding-top: 0;
+  margin: 0;
+  margin-top: 0;
+  background: transparent;
+  border: none;
+  outline: none;
+}
+
+#running_subagents > CollapsibleContent > *:first-child,
+#running_subagents CollapsibleContent > *:first-child {
+  margin-top: 0;
+  padding-top: 0;
+}
+
+#running_subagents_content {
+  padding: 0;
+  margin: 0;
+}
+
+#todo {
+  padding: 0;
+  margin: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+}
+
+#todo:focus,
+#todo:focus-within,
+#todo:hover {
+  background: transparent;
+  border: none;
+  outline: none;
+}
+
+#todo > CollapsibleTitle,
+#todo > CollapsibleTitle > CollapsibleTitleToggle,
+#todo > CollapsibleTitle > CollapsibleTitleLabel,
+#todo CollapsibleTitle,
+#todo CollapsibleTitleToggle,
+#todo CollapsibleTitleLabel,
+#todo CollapsibleTitle:focus,
+#todo CollapsibleTitle:focus-within,
+#todo CollapsibleTitle:hover,
+#todo CollapsibleTitleToggle:focus,
+#todo CollapsibleTitleToggle:focus-within,
+#todo CollapsibleTitleToggle:hover,
+#todo CollapsibleTitleLabel:focus,
+#todo CollapsibleTitleLabel:focus-within,
+#todo CollapsibleTitleLabel:hover {
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  color: #93c5fd;
+  border: none;
+  outline: none;
+}
+
+#todo > CollapsibleContent,
+#todo CollapsibleContent,
+#todo CollapsibleContent:focus,
+#todo CollapsibleContent:focus-within,
+#todo CollapsibleContent:hover {
+  padding: 0;
+  padding-top: 0;
+  margin: 0;
+  margin-top: 0;
+  background: transparent;
+  border: none;
+  outline: none;
+}
+
+#todo > CollapsibleContent > *:first-child,
+#todo CollapsibleContent > *:first-child {
+  margin-top: 0;
+  padding-top: 0;
+}
+
+#todo_content {
+  padding: 0;
+  margin: 0;
+}
+
+#chat_scroll {
+  height: 1fr;
+  padding: 0 1;
+  overflow-x: hidden;
+  background: #0b1220;
+}
+
+#chat {
+  width: 100%;
+  height: auto;
+  overflow-x: hidden;
+  text-wrap: wrap;
+  color: #e5e7eb;
+}
+
+#bottom {
+  height: auto;
+  padding: 0 1 1 1;
+  overflow-x: hidden;
+  background: #111827;
+  border-top: heavy #1f2937;
+}
+
+#chat_input {
+  width: 100%;
+  height: auto;
+  min-height: 3;
+  overflow-x: hidden;
+  scrollbar-size-vertical: 1;
+  background: #0b1220;
+  color: #e5e7eb;
+  border: heavy #1f2937;
+}

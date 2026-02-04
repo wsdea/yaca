@@ -1,0 +1,5 @@
+This is a test file.
+Contains the keyword alpha.
+Another line without.
+alpha appears again here.
+End of file.
