@@ -1,0 +1,15 @@
+extend-exclude =["__init__.py", "*.ipynb"]
+line-length = 88
+indent-width = 4
+
+[format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "lf"
+
+[lint]
+preview = true
+isort.detect-same-package = true
+extend-select = ["E", "F", "I", "W"]
+extend-ignore = ["E741", "E402", "E501"]

@@ -47,7 +47,7 @@ include = ["yaca*"]
 [tool.setuptools.package-data]
 yaca = ["**/*.tcss", "**/*.txt"]
 
-[project.optional-dependencies]
+[dependency-groups]
 dev = [
     "ipykernel>=7.1.0",
     "pytest==8.3.4",
