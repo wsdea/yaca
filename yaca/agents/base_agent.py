@@ -92,7 +92,7 @@ class BaseAgent:
                 "list_files": list_files_tool,
                 "search": search_tool,
                 "reply_to_user": reply_to_user_tool,
-                "cannot_do_tool": cannot_do_tool,
+                "cannot_do": cannot_do_tool,
                 "ask_questions": ask_questions_tool,
                 "start_coding_task": start_coding_task_tool,
                 "update_todo": update_todo_tool,
