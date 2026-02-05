@@ -19,7 +19,7 @@ class YacaCoder(BaseAgent):
             "apply_diff",
             "create_file",
             "remove_path",
-            "ask_questions",
+            "reply_to_user",
             "attempt_completion",
         )
 
@@ -90,9 +90,9 @@ class YacaCoder(BaseAgent):
             last_user_input_id = None
 
         assert last_user_input_id is not None
-        assert isinstance(
-            self.conversation[last_user_input_id], UserInput
-        ), self.conversation[last_user_input_id]
+        assert isinstance(self.conversation[last_user_input_id], UserInput), (
+            self.conversation[last_user_input_id]
+        )
 
         # adding helper messages around user input
         self.conversation = (
