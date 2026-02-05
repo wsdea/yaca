@@ -49,8 +49,8 @@ def start_coding_task_tool(
     Tool to call when you have enough context to start coding. Write a todo list of what to do. The todo list must only contain coding tasks such as creating, editing or deleting coding files. The todo list must not include tasks such as searching for relevant files,understanding the codebase, etc. Do not add tests, except when specifically asked to. This tool is the last tool you will call in this conversation. Include relevant paths in ``, but do not include code blocks.
 
     Args:
-        - user_request (str) : message of the user
         - task_name (str) : short title for the task
+        - user_request (str) : message of the user
         - todo_list (list[str]) : Ordered list of items to do
     """
 

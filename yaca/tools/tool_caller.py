@@ -49,6 +49,8 @@ class ToolCaller:
         """Trying to parse when xml is not perfect"""
         xml_text = xml_text.strip().replace("\\\\", "\\")
         xml_text = html.unescape(xml_text)
+        if not xml_text.endswith("</yaca_tool>"):
+            xml_text += "</yaca_tool>"
 
         return xml_text
 
