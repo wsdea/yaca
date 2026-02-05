@@ -5,7 +5,6 @@ import pytest
 from yaca.agents import YacaCoder
 from yaca.ui import YacaTextualApp
 from yaca.ui.history_manager import HistoryManager
-from yaca.ui.yaca_cli import YacaCLI
 
 
 @pytest.fixture(autouse=True)
@@ -32,4 +31,3 @@ def test_yaca_ui_init() -> None:
     history_file = os.path.join(agent.STATE_FOLDER, "history.json")
     history_manager = HistoryManager(history_file)
     app = YacaTextualApp(agent, history_manager)
-    cli = YacaCLI(agent, history_manager)

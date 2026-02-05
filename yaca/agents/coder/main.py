@@ -5,19 +5,11 @@ from ..base_agent import BaseAgent
 
 
 class YacaCoder(BaseAgent):
-    def __init__(
-        self,
-        open_files,
-        todo_list,
-        last_list_files="**",
-        *args,
-        **kwargs,
-    ) -> None:
+    def __init__(self, todo_list, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
+        self.reset()
         self.todo_list = todo_list
         assert len(self.todo_list) > 0
-        self.open_files = open_files
-        self.last_list_files = last_list_files
 
         self.set_tools(
             # "open_files",

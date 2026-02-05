@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-from yaca.agents.yaca_coder import YacaCoder
+from yaca.agents import YacaPlanner
 from yaca.ui.app import YacaTextualApp
 from yaca.ui.history_manager import HistoryManager
 
@@ -15,7 +15,7 @@ def test_textual_app_constructs(tmp_path) -> None:
     os.chdir(tmp_path)
     try:
         history_path = os.path.join(tmp_path, "history.json")
-        agent = YacaCoder(_pytest=True, llm_cache_folder=llm_cache_folder)
+        agent = YacaPlanner(_pytest=True, llm_cache_folder=llm_cache_folder)
         history_manager = HistoryManager(history_path)
         app = YacaTextualApp(agent, history_manager)
         assert app is not None
@@ -29,7 +29,7 @@ async def test_textual_app_run_test_starts_and_widgets_mount(tmp_path) -> None:
     os.chdir(tmp_path)
     try:
         history_path = os.path.join(tmp_path, "history.json")
-        agent = YacaCoder(_pytest=True, llm_cache_folder=llm_cache_folder)
+        agent = YacaPlanner(_pytest=True, llm_cache_folder=llm_cache_folder)
         history_manager = HistoryManager(history_path)
         app = YacaTextualApp(agent, history_manager)
 
@@ -47,7 +47,7 @@ async def test_textual_app_send_empty_message_does_not_crash(tmp_path) -> None:
     os.chdir(tmp_path)
     try:
         history_path = os.path.join(tmp_path, "history.json")
-        agent = YacaCoder(_pytest=True)
+        agent = YacaPlanner(_pytest=True)
         history_manager = HistoryManager(history_path)
         app = YacaTextualApp(agent, history_manager)
 

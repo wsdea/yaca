@@ -1,6 +1,5 @@
 import json
 import os
-import time
 
 from ..llm import FailedToolResult, SuccessToolResult, find_json
 from .open_files import open_files_tool
@@ -16,7 +15,6 @@ prompt_loader = PromptLoader(prompt_folder=os.path.dirname(__file__))
 def validate_todo(agent, todo: list[str], user_request: str) -> str:
     """
     Returns an empty string if the todo is fine, otherwise returns an error message
-    Also returns relevant files if no error
     """
     assert isinstance(todo, list), "Todo should be a list of str"
 
@@ -37,24 +35,29 @@ def validate_todo(agent, todo: list[str], user_request: str) -> str:
         return ""
 
     if dic.get("todo_is_ok"):
-        return "", dic.get("relevant_files", [])
+        return ""
 
-    return dic.get("explaination") or "Double check TODO rules", []
+    return dic.get("explaination") or "Double check TODO rules"
 
 
 def start_coding_task_tool(
-    agent, task_name: str, user_request: str, todo_list: list[str]
+    agent,
+    task_name: str,
+    user_request: str,
+    relevant_files: list[str],
+    todo_list: list[str],
 ):
     """
-    Tool to call when you have enough context to start coding. Write a todo list of what to do. The todo list must only contain coding tasks such as creating, editing or deleting coding files. The todo list must not include tasks such as searching for relevant files,understanding the codebase, etc. Do not add tests, except when specifically asked to. This tool is the last tool you will call in this conversation. Include relevant paths in ``, but do not include code blocks.
+    Tool to call when you have enough context to start coding. Write a todo list of what to do. The todo list must only contain coding tasks such as creating, editing or deleting coding files. The todo list must not include tasks such as searching for relevant files, understanding the codebase, etc. Do not add tests, except when specifically asked to. Do not include code blocks.
 
     Args:
-        - task_name (str) : short title for the task
-        - user_request (str) : message of the user
+        - task_name (str) : Short title for the task
+        - user_request (str) : Message of the user
+        - relevant_files (list[str]) : List of files to open or create to solve this task
         - todo_list (list[str]) : Ordered list of items to do
     """
 
-    error, relevant_files = validate_todo(agent, todo_list, user_request)
+    error = validate_todo(agent, todo_list, user_request)
 
     if error:
         return FailedToolResult(
@@ -63,21 +66,17 @@ def start_coding_task_tool(
             "Call other tools to gather more information or update the todo."
         )
 
-    agent.todo_list = [{"status": "pending", "item": x} for x in todo_list]
-    if relevant_files:
-        open_files_tool(agent, relevant_files, overwrite=True)
-
-    agent.logger.debug(
-        f"Running coding agent with \nopen_files={agent.open_files}\ntodo_list={agent.todo_list}\nlast_list_files={agent.last_list_files}"
-    )
+    todo_list = [{"status": "pending", "item": x} for x in todo_list]
 
     from ..agents.coder.main import YacaCoder
 
-    coder = YacaCoder(
-        _pytest=agent._pytest,
-        open_files=agent.open_files,
-        todo_list=agent.todo_list,
-        last_list_files=agent.last_list_files,
+    coder = YacaCoder(todo_list=todo_list, _pytest=agent._pytest)
+
+    if relevant_files:
+        open_files_tool(coder, relevant_files, overwrite=True)
+
+    agent.logger.debug(
+        f"Running coding agent with \nopen_files={coder.open_files}\ntodo_list={coder.todo_list}\nlast_list_files={coder.last_list_files}"
     )
 
     result = agent.run_subagent(
