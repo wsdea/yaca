@@ -24,6 +24,7 @@ from ..tools.list_files import list_files_tool
 from ..tools.open_files import open_files_tool
 from ..tools.prompt_loader import PromptLoader
 from ..tools.remove_path import remove_path_tool
+from ..tools.reply_to_user import reply_to_user_tool
 from ..tools.search import search_tool
 from ..tools.todo import start_coding_task_tool, update_todo_tool
 from ..tools.tool_caller import ToolCaller, ToolParsingError
@@ -89,6 +90,7 @@ class BaseAgent:
                 "open_files": open_files_tool,
                 "list_files": list_files_tool,
                 "search": search_tool,
+                "reply_to_user": reply_to_user_tool,
                 "ask_questions": ask_questions_tool,
                 "start_coding_task": start_coding_task_tool,
                 "update_todo": update_todo_tool,
@@ -330,6 +332,7 @@ class BaseAgent:
                     )
                     raise
 
+                self.logger.debug(f"Tool {tool_name} response : {tool_response}")
                 already_called.add(tool_name)
                 tool_response.tool_name = tool_name
                 processed_tool_txt += "\n" + tool_txt

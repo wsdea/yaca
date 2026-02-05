@@ -47,7 +47,7 @@ async def test_textual_app_send_empty_message_does_not_crash(tmp_path) -> None:
     os.chdir(tmp_path)
     try:
         history_path = os.path.join(tmp_path, "history.json")
-        agent = YacaPlanner(_pytest=True)
+        agent = YacaPlanner(_pytest=True, llm_cache_folder=llm_cache_folder)
         history_manager = HistoryManager(history_path)
         app = YacaTextualApp(agent, history_manager)
 

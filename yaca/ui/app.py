@@ -37,6 +37,7 @@ class YacaTextualApp(App):
     open_files = reactive([])
     conversation_text = reactive("")
     running_status = reactive("IDLE")
+    last_error = reactive("")
 
     def __init__(self, agent: YacaPlanner, history: HistoryManager):
         super().__init__()
@@ -211,6 +212,7 @@ class YacaTextualApp(App):
 
     async def action_cancel_and_reset(self) -> None:
         chat_input = self.query_one("#chat_input", Input)
+        self.last_error = ""
         should_exit = (
             not self.agent.is_running
             and chat_input.value.strip() == ""
@@ -239,6 +241,14 @@ class YacaTextualApp(App):
         ).strip()
         logger.exception("Unhandled exception in agent task:\n\n%s", formatted)
 
+        self.agent.is_running = False
+        self.last_error = (
+            "Agent crashed\n\n"
+            f"{type(exc).__name__}: {exc}\n\n"
+            f"{formatted}"
+        )
+        self.call_later(self.refresh_from_agent)
+
         loop = asyncio.get_running_loop()
         loop.call_exception_handler(
             {
@@ -253,10 +263,11 @@ class YacaTextualApp(App):
         except Exception:
             pass
 
-        self.call_later(lambda: self.exit(return_code=1))
+        self.set_timer(0.05, lambda: self.exit(return_code=1))
 
     @on(Input.Submitted, "#chat_input")
     async def action_send_message(self) -> None:
+        self.last_error = ""
         input = self.query_one("#chat_input", Input)
         message = input.value
         input.value = ""
