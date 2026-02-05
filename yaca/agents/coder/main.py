@@ -19,7 +19,7 @@ class YacaCoder(BaseAgent):
             "apply_diff",
             "create_file",
             "remove_path",
-            "reply_to_user",
+            "cannot_do",
             "attempt_completion",
         )
 

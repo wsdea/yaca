@@ -84,6 +84,13 @@ def start_coding_task_tool(
         agent=coder,
         run_kwargs={"user_message": coder.prompt_loader("code_mode_start")},
     )
+
+    if result.tool_name == "cannot_do":
+        agent.logger.debug(f"Coding task could be done:{result.txt}")
+        return FailedToolResult(
+            f"Coding task could not be done properly. Here is an explaination from the coder :\n{result.txt}"
+        )
+
     agent.logger.debug(f"Coding task done:{result.txt}")
 
     return SuccessToolResult(

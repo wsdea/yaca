@@ -1,10 +1,10 @@
-from ..llm import AssistantResponse
+from ..llm import SuccessToolResult
 
 
 def reply_to_user_tool(agent, message: str):
-    """Tool to use when you want to directly talk to the user. This can be if you cannot complete the taask given, and need additionnal context. Include details if needed.
+    """Tool to use when you want to directly talk to the user. Do not include code blocks in your message unless explicitely asked by the user. Use markdown formatting. Use clickable links when citing files.
 
     Args:
         - message (str): The message to display.
     """
-    return AssistantResponse(message)
+    return SuccessToolResult(message)

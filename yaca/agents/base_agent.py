@@ -17,6 +17,7 @@ from ..llm.messages import (
 from ..logger import get_logger
 from ..tools.ask_questions import ask_questions_tool
 from ..tools.attempt_completion import attempt_completion_tool
+from ..tools.cannot_do import cannot_do_tool
 from ..tools.code_diffs import apply_diff_tool
 from ..tools.create_file import create_file_tool
 from ..tools.hooks import HookCaller
@@ -91,6 +92,7 @@ class BaseAgent:
                 "list_files": list_files_tool,
                 "search": search_tool,
                 "reply_to_user": reply_to_user_tool,
+                "cannot_do_tool": cannot_do_tool,
                 "ask_questions": ask_questions_tool,
                 "start_coding_task": start_coding_task_tool,
                 "update_todo": update_todo_tool,
