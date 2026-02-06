@@ -124,7 +124,7 @@ class YacaTextualApp(App):
         warning.display = bool(is_unsafe_tripped())
         if warning.display:
             warning.update(
-                "WARNING:\nYACA may have generated unsafe code. Please double-check before running commands such as tests. Hooks have been disabled. Review the generated code, and restart YACA to re-enable all features."
+                "WARNING:\nYACA may have generated unsafe code. Please double-check before running commands (including tests). All command running abilities and hooks have been disabled. Review the generated code, and restart YACA to re-enable all features."
             )
 
         open_files = self.query_one("#open_files", Collapsible)
