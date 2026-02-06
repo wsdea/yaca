@@ -9,11 +9,7 @@ from textual.reactive import reactive
 from textual.widgets import Collapsible, Input, Markdown, Static
 
 from ..agents import YacaPlanner
-from ..logger import get_logger
 from .history_manager import HistoryManager
-
-logger = get_logger(__name__)
-
 
 YACA_STARTUP_MESSAGE = """```
            ╻ ╻┏━┓┏━╸┏━┓   ┏━╸┏━┓╺┳┓┏━╸┏━┓
@@ -207,7 +203,7 @@ class YacaTextualApp(App):
             await asyncio.to_thread(self.agent, message)
         except Exception:
             formatted = traceback.format_exc().strip()
-            logger.exception("_process_message crashed:\n\n%s", formatted)
+            print("_process_message crashed:\n\n%s", formatted)
             raise
 
     async def action_cancel_and_reset(self) -> None:
@@ -239,12 +235,10 @@ class YacaTextualApp(App):
         formatted = "".join(
             traceback.format_exception(type(exc), exc, exc.__traceback__)
         ).strip()
-        logger.exception("Unhandled exception in agent task:\n\n%s", formatted)
+        print("Unhandled exception in agent task:\n\n%s", formatted)
 
         self.agent.is_running = False
-        self.last_error = (
-            "Agent crashed\n\n" f"{type(exc).__name__}: {exc}\n\n" f"{formatted}"
-        )
+        self.last_error = f"Agent crashed\n\n{type(exc).__name__}: {exc}\n\n{formatted}"
         self.call_later(self.refresh_from_agent)
 
         loop = asyncio.get_running_loop()
@@ -283,8 +277,6 @@ class YacaTextualApp(App):
             input.value = ""
             self.call_later(self.refresh_from_agent)
             return
-
-        logger.debug(f"action_send_message :\n{message}")
 
         # Persist prompt history.
         self.history.add_user_input(message)

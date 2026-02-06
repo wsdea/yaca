@@ -1,4 +1,3 @@
-import logging
 import os
 import sys
 import threading
@@ -14,7 +13,7 @@ from ..llm.messages import (
     Message,
     UserInput,
 )
-from ..logger import get_logger
+from ..logger import Logger
 from ..tools.ask_questions import ask_questions_tool
 from ..tools.attempt_completion import attempt_completion_tool
 from ..tools.cannot_do import cannot_do_tool
@@ -47,8 +46,6 @@ class BaseAgent:
         """
         self.id = str(uuid.uuid4())
         self.name = self.__class__.__name__
-        self.logger = get_logger(__name__)
-        self.logger.debug("__init__ start")
         self._pytest = _pytest
         self.disable_run_command = False
         self.is_running = False
@@ -64,7 +61,6 @@ class BaseAgent:
 
         self.RECYCLE_BIN = os.path.join(self.DOT_YACA_FOLDER, "recycle_bin")
         os.makedirs(self.RECYCLE_BIN, exist_ok=True)
-        self.logger.debug(f"{self.name} RECYCLE_BIN=%s", self.RECYCLE_BIN)
 
         self.AGENT_STATE_FOLDER = os.path.join(self.STATE_FOLDER, self.name)
         os.makedirs(self.AGENT_STATE_FOLDER, exist_ok=True)
@@ -74,20 +70,34 @@ class BaseAgent:
         )
         os.makedirs(self.AGENT_FOLDER, exist_ok=True)
 
-        self.DEBUG_FILE = os.path.join(self.AGENT_STATE_FOLDER, "debug.log")
-
-        self._setup_debug_file_logging()
-
-        self.llm = LLMClient(
-            llm_debug_folder=llm_debug_folder
-            or os.path.join(self.AGENT_STATE_FOLDER, "llm_debug"),
-            llm_cache_dir=llm_cache_folder
-            or os.path.join(self.STATE_FOLDER, "llm_cache"),
+        log_file_path = os.path.join(
+            self.STATE_FOLDER, f"debug-{self.name}-{self.id}.log"
         )
+        self.logger = Logger(log_file_path)
+
+        llm_debug_folder = llm_debug_folder or os.path.join(
+            self.AGENT_STATE_FOLDER, "llm_debug"
+        )
+        llm_cache_dir = llm_cache_folder or os.path.join(self.STATE_FOLDER, "llm_cache")
+        self.llm = LLMClient(
+            llm_debug_folder=llm_debug_folder,
+            llm_cache_dir=llm_cache_dir,
+        )
+
+        self.logger.debug("CWD=%s", self.CWD)
+        self.logger.debug("DOT_YACA_FOLDER=%s", self.DOT_YACA_FOLDER)
+        self.logger.debug("STATE_FOLDER=%s", self.STATE_FOLDER)
+        self.logger.debug("RECYCLE_BIN=%s", self.RECYCLE_BIN)
+        self.logger.debug("AGENT_STATE_FOLDER=%s", self.AGENT_STATE_FOLDER)
+        self.logger.debug("AGENT_FOLDER=%s", self.AGENT_FOLDER)
+        self.logger.debug("llm_debug_folder=%s", llm_debug_folder)
+        self.logger.debug("llm_cache_dir=%s", llm_cache_dir)
 
         self.prompt_loader = PromptLoader(self.AGENT_FOLDER)
 
-        hook_caller = HookCaller(os.path.join(self.DOT_YACA_FOLDER, "hooks.yaml"))
+        hooks_yaml_path = os.path.join(self.DOT_YACA_FOLDER, "hooks.yaml")
+        self.logger.debug("hooks_yaml_path=%s", hooks_yaml_path)
+        hook_caller = HookCaller(hooks_yaml_path)
         self.tool_caller = ToolCaller(
             {
                 "open_files": open_files_tool,
@@ -120,47 +130,6 @@ class BaseAgent:
 
     def log(self, msg: str, *args, **kwargs) -> None:
         self.logger.debug(msg, *args, **kwargs)
-
-    def _setup_debug_file_logging(self) -> None:
-        """Ensure a debug file handler is configured for the `yaca` logger."""
-        base_logger = logging.getLogger("yaca")
-        base_logger.setLevel(logging.DEBUG)
-
-        for h in list(base_logger.handlers):
-            if isinstance(h, logging.StreamHandler) and not isinstance(
-                h, logging.FileHandler
-            ):
-                base_logger.removeHandler(h)
-
-        existing_file_handlers = [
-            h
-            for h in base_logger.handlers
-            if isinstance(h, logging.FileHandler)
-            and getattr(h, "baseFilename", None) == os.path.abspath(self.DEBUG_FILE)
-        ]
-        if len(existing_file_handlers) == 1:
-            return
-
-        for h in list(base_logger.handlers):
-            if isinstance(h, logging.FileHandler) and getattr(h, "baseFilename", None):
-                if os.path.abspath(h.baseFilename) == os.path.abspath(self.DEBUG_FILE):
-                    base_logger.removeHandler(h)
-
-        # resetting the debug file
-        open(self.DEBUG_FILE, "w", encoding="utf-8").close()
-
-        file_handler = logging.FileHandler(self.DEBUG_FILE, encoding="utf-8")
-        file_handler.setLevel(logging.DEBUG)
-        file_handler.setFormatter(
-            logging.Formatter(
-                fmt="%(asctime)s %(levelname)s %(name)s:%(lineno)d - %(message)s"
-            )
-        )
-        base_logger.addHandler(file_handler)
-
-        self.logger.debug(
-            f"{self.name} debug file logging enabled path=%s", self.DEBUG_FILE
-        )
 
     def run_subagent(self, name: str, agent, run_kwargs) -> None:
         """Run a subagent and wait for the result"""

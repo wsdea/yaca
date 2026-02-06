@@ -7,12 +7,9 @@ from threading import Lock
 
 from openai import APIConnectionError, AuthenticationError, OpenAI
 
-from ..logger import get_logger
 from .json import load_json, save_json
 from .llm_conf import MAX_INPUT_TOKENS_PER_MODEL, LLMModel
 from .messages import Message
-
-logger = get_logger(__name__)
 
 GLOBAL_COUNT = 0
 
@@ -77,9 +74,7 @@ class LLMClient:
             try:
                 save_json(self.cache_file, self.cache_data)
             except PermissionError:
-                logger.warning(
-                    "Could not save cache as file is already being used, try again later"
-                )
+                pass
 
     def _load_cache_from_disk(self) -> dict:
         """Load cache data from file"""
@@ -163,7 +158,6 @@ class LLMClient:
                 return response
             except (AuthenticationError, APIConnectionError):
                 # Token issues – try to refresh once and retry immediately
-                logger.info("Chat Token expired, refreshing...")
                 try:
                     self._renew_token()
                 except Exception as e:
@@ -177,10 +171,6 @@ class LLMClient:
                 else:
                     # Sleep with exponential backoff before next retry
                     backoff = 2 ** (attempt - 1)
-                    logger.warning(
-                        f"LLM call failed (attempt {attempt}/{max_retries}): {e}. "
-                        f"Retrying after {backoff}s..."
-                    )
                     time.sleep(backoff)
         # If we exit the loop without returning, raise a generic error
         raise LLMError("Failed to get chat completion after retries")
@@ -223,7 +213,6 @@ class LLMClient:
                 # here result is a dict with the answer and reasoning (if applicable)
                 result = self._chat_generate_text(text_inputs=text_inputs, **kwargs)
             except Exception as e:
-                logger.error(f"LLM call failed for {self.__class__.__name__}. {e}")
                 raise LLMError(e)
 
             if self.cache_file:

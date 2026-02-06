@@ -4,14 +4,14 @@ import shutil
 import pytest
 
 
-def pytest_ignore_collect(path, config):
+def pytest_ignore_collect(collection_path, config):
     """
     Pytest hook to ignore the ``projects_mirror`` directory during test collection.
     This prevents pytest from trying to collect any test files that might be
     generated inside the mirror folder.
     """
     # ``path`` can be a ``Path`` object or a string; convert to string for safety.
-    path_str = str(path)
+    path_str = str(collection_path)
     # If the path ends with or contains the ``projects_mirror`` directory, ignore it.
     if "projects_mirror" in path_str.split(os.sep):
         return True

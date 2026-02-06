@@ -96,7 +96,7 @@ def start_coding_task_tool(
     agent.logger.debug(f"Coding task done:{result.txt}")
 
     return SuccessToolResult(
-        f"Coding task is done, here is the summary :\n{result.txt}\nUse the tool to ask a question. In the message, first repeat what has been done in all the previous coding tasks so far, and then ask **one** follow-up question of what to do next."
+        f"Coding task is done, here is the summary :\n{result.txt}\nUse the tool to ask a question. In the message, first repeat what has been done in all the previous coding tasks so far, and then ask **one** follow-up question suggesting what to do next."
     )
 
 
