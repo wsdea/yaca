@@ -21,11 +21,10 @@ urls = { "Repository" = "https://github.com/wsdea/yaca", "Issues" = "https://git
 dependencies = [
     "httpx==0.27.0",
     "jinja2>=3.1.6",
-    "openai==1.69.0",
+    "litellm==1.61.20",
     "orjson>=3.11.1",
     "PyYAML>=6.0.0",
     "requests==2.32.3",
-    "requests-oauthlib==2.0.0",
     "rich>=13.0.0",
     "textual>=0.60.0",
 ]

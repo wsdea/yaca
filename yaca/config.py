@@ -140,6 +140,6 @@ def get_cfg_value(path: str, expected_type: type = None):
         current = current[part]
     if expected_type is not None and not isinstance(current, expected_type):
         raise Exception(
-            f"Error parsing config. Expected {path!r} to be of type {expected_type}, but got {type(expected_type)} instead"
+            f"Error parsing config. Expected {path!r} to be of type {expected_type}, but got {type(current)} instead"
         )
     return current

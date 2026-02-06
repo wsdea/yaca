@@ -1,8 +1,10 @@
 llm:
   model: "gpt-5.2-2025-12-11"
   timeout_seconds: 120
-  openai:
+  litellm:
     max_retries: 5
+    api_key_env: "LITELLM_API_KEY"
+    base_url: null
   chat_retry:
     max_retries: 3
 

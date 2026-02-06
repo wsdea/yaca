@@ -5,7 +5,7 @@ import os
 import time
 from threading import Lock
 
-from openai import APIConnectionError, AuthenticationError, OpenAI
+import litellm
 
 from ..config import get_cfg_value
 from .json import load_json, save_json
@@ -15,10 +15,6 @@ GLOBAL_COUNT = 0
 
 
 class LLMError(Exception):
-    pass
-
-
-class TokenRefreshError(Exception):
     pass
 
 
@@ -34,34 +30,30 @@ class LLMClient:
 
         self.model_name = model_name
 
-        # Openai
-        self.openai_base_url = None
-        self.openai_api_key = os.environ["OPENAI_API_KEY"]
-        self.openai_org_id = os.environ["OPENAI_ORG_ID"]
-        self.openai_client = OpenAI(
-            api_key=self.openai_api_key,
-            organization=self.openai_org_id,
-            max_retries=get_cfg_value("llm.openai.max_retries", int),
-            timeout=get_cfg_value("llm.timeout_seconds", int),
-        )
+        self.litellm_max_retries = get_cfg_value("llm.litellm.max_retries", int)
+        self.timeout_seconds = get_cfg_value("llm.timeout_seconds", int)
 
-        # Cache
+        self.api_key_env = get_cfg_value("llm.litellm.api_key_env", str)
+        self.api_key = os.environ.get(self.api_key_env)
+
+        self.base_url = get_cfg_value("llm.litellm.base_url")
+        if self.base_url is not None and not isinstance(self.base_url, str):
+            raise Exception(
+                f"Error parsing config. Expected 'llm.litellm.base_url' to be a string or null, but got {type(self.base_url)} instead"
+            )
         self.llm_clients_cache_dir = llm_cache_dir
         if self.llm_clients_cache_dir:
             self.llm_clients_cache_dir = os.path.abspath(self.llm_clients_cache_dir)
         self.init_get_cache()
 
-        # Debug folder
         self.llm_debug_folder = llm_debug_folder
         if self.llm_debug_folder is not None:
             self.llm_debug_folder = os.path.abspath(self.llm_debug_folder)
             os.makedirs(self.llm_debug_folder, exist_ok=True)
-            # clearing debug folder
             for x in glob.glob(os.path.join(self.llm_debug_folder, "*")):
                 os.remove(x)
 
-    def _get_cache_key(self, inputs: str, params: dict) -> str:
-        """Generate a cache key using SHA256 hash"""
+    def _get_cache_key(self, inputs, params: dict) -> str:
         data = {"inputs": inputs, "params": params}
         cache_key_data = json.dumps(data, sort_keys=True)
         return hashlib.sha256(cache_key_data.encode()).hexdigest()
@@ -80,7 +72,6 @@ class LLMClient:
                 pass
 
     def _load_cache_from_disk(self) -> dict:
-        """Load cache data from file"""
         with self.cache_lock:
             if os.path.exists(self.cache_file):
                 self.cache_data = load_json(self.cache_file)
@@ -117,69 +108,44 @@ class LLMClient:
             messages = text_inputs
         else:
             raise Exception(
-                f'text_inputs should be a string (the first message content), or a list of dict "role", "content" got {type(text_inputs)}'
+                f"text_inputs should be a string (the first message content), or a list of dict with 'role' and 'content' keys got {type(text_inputs)}"
             )
         return messages
 
-    def _renew_token(self) -> None:
-        pass
-
-    # Chat Completion
-    def _openai_chat_completion(self, text_inputs: str | list[dict]) -> dict:
-        """returns a dict with the answer and the reasoning content"""
+    def _chat_completion(self, text_inputs: str | list[dict]) -> dict:
         messages = self.inputs_to_messages(text_inputs)
 
-        response = self.openai_client.chat.completions.create(
-            model=self.model_name,
-            messages=messages,
-            stream=False,
-        )
-
-        response = response.choices[0].message
-        try:
-            reasoning = response.reasoning_content
-        except AttributeError:
-            # model doesn't support reasoning
-            reasoning = ""
-
-        return {
-            "answer": response.content,
-            "reasoning": reasoning,
+        params = {
+            "model": self.model_name,
+            "messages": messages,
+            "timeout": self.timeout_seconds,
+            "num_retries": self.litellm_max_retries,
         }
 
-    def _chat_generate_text(self, text_inputs: str | list[dict]) -> dict:
-        """Attempt to get a chat completion with retries.
+        if self.base_url is not None:
+            params["api_base"] = self.base_url
 
-        Retries up to 3 times on generic errors (e.g., 403 ext_authz_error).
-        Sleeps with exponential backoff between attempts.
-        """
-        max_retries = get_cfg_value("llm.chat_retry.max_retries", int)
-        for attempt in range(1, max_retries + 1):
-            try:
-                # First attempt (or retry) to get completion
-                response = self._openai_chat_completion(text_inputs)
-                return response
-            except (AuthenticationError, APIConnectionError):
-                # Token issues – try to refresh once and retry immediately
-                try:
-                    self._renew_token()
-                except Exception as e:
-                    raise TokenRefreshError(f"Failed token refresh: {str(e)}")
-                # After token refresh, continue to next iteration to retry
-            except Exception as e:
-                # For other errors (e.g., 403 ext_authz_error), decide whether to retry
-                if attempt >= max_retries:
-                    # No more retries left, raise the original error wrapped as LLMError
-                    raise LLMError(e)
-                else:
-                    # Sleep with exponential backoff before next retry
-                    backoff = 2 ** (attempt - 1)
-                    time.sleep(backoff)
-        # If we exit the loop without returning, raise a generic error
-        raise LLMError("Failed to get chat completion after retries")
+        if self.api_key is not None:
+            params["api_key"] = self.api_key
+
+        try:
+            response = litellm.completion(**params)
+        except Exception as e:
+            raise LLMError(e)
+
+        try:
+            message = response.choices[0].message
+            content = message.content
+        except Exception as e:
+            raise LLMError(f"Unexpected LiteLLM response shape: {str(e)}")
+
+        reasoning = ""
+        if hasattr(message, "reasoning_content"):
+            reasoning = message.reasoning_content or ""
+
+        return {"answer": content or "", "reasoning": reasoning}
 
     def messages_to_dicts(self, messages: list[Message]):
-        # merging consecutive messages if they are the same role
         messages_dict = [x.to_dict() for x in messages if x]
         new_messages_dict = [messages_dict[0]]
         current_role = messages_dict[0]["role"]
@@ -197,7 +163,7 @@ class LLMClient:
         text_inputs: str | list[Message],
         hide_reasoning=True,
         **kwargs,
-    ) -> str:
+    ):
         if isinstance(text_inputs, list):
             text_inputs = self.messages_to_dicts(text_inputs)
 
@@ -207,36 +173,31 @@ class LLMClient:
             result = self._get_from_cache(key)
 
             if isinstance(result, str):
-                # for backward compatibility
                 result = {"reasoning": "", "answer": result}
                 self._set_cache_key(key, result)
 
         if result is None:
-            try:
-                # here result is a dict with the answer and reasoning (if applicable)
-                result = self._chat_generate_text(text_inputs=text_inputs, **kwargs)
-            except Exception as e:
-                raise LLMError(e)
+            result = self._chat_completion(text_inputs=text_inputs)
 
             if self.cache_file:
                 self._set_cache_key(key, result)
 
         global GLOBAL_COUNT
         if self.llm_debug_folder is not None:
-            # logging both reasoning and response
             file = os.path.join(
                 self.llm_debug_folder, f"llm_log_{int(time.time())}-{GLOBAL_COUNT}.txt"
             )
-            if isinstance(text_inputs, list):
-                text_inputs = "\n".join(
+            debug_inputs = text_inputs
+            if isinstance(debug_inputs, list):
+                debug_inputs = "\n".join(
                     [
                         f"\n\n**{dic['role']}**\n\n{dic['content']}"
-                        for dic in text_inputs
+                        for dic in debug_inputs
                     ]
                 )
             with open(file, "w", encoding="utf-8") as f:
                 f.write(
-                    f"{text_inputs}\n\n\n\n{'=' * 30}\nReasoning:\n{'=' * 30}\n\n{result['reasoning']}\n\n\n\n{'=' * 30}\nAnswer:\n{'=' * 30}\n\n{result['answer']}"
+                    f"{debug_inputs}\n\n\n\n{'=' * 30}\nReasoning:\n{'=' * 30}\n\n{result['reasoning']}\n\n\n\n{'=' * 30}\nAnswer:\n{'=' * 30}\n\n{result['answer']}"
                 )
             GLOBAL_COUNT += 1
 

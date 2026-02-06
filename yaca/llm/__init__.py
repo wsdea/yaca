@@ -10,5 +10,5 @@ from .messages import (
     DebugMessage,
     _ToolResult,
 )
-from .openai_client import LLMClient, LLMError
+from .litellm_client import LLMClient, LLMError
 from .output_parser import find_json
