@@ -62,19 +62,21 @@ class BaseAgent:
         self.RECYCLE_BIN = os.path.join(self.DOT_YACA_FOLDER, "recycle_bin")
         os.makedirs(self.RECYCLE_BIN, exist_ok=True)
 
-        self.AGENT_STATE_FOLDER = os.path.join(self.STATE_FOLDER, self.name)
-        os.makedirs(self.AGENT_STATE_FOLDER, exist_ok=True)
         # dir of the subclass
         self.AGENT_CODE_FOLDER = os.path.dirname(
             sys.modules[self.__class__.__module__].__file__
         )
         os.makedirs(self.AGENT_CODE_FOLDER, exist_ok=True)
 
-        log_file_path = os.path.join(self.AGENT_STATE_FOLDER, f"debug-{self.id}.log")
+        agent_logs_root = os.path.join(self.STATE_FOLDER, "agent_logs")
+        os.makedirs(agent_logs_root, exist_ok=True)
+        self.AGENT_LOGS_FOLDER = os.path.join(agent_logs_root, f"{self.name}-{self.id}")
+
+        log_file_path = os.path.join(self.AGENT_LOGS_FOLDER, "debug.log")
         self.logger = Logger(log_file_path)
 
         llm_debug_folder = llm_debug_folder or os.path.join(
-            self.AGENT_STATE_FOLDER, "llm_debug"
+            self.AGENT_LOGS_FOLDER, "llm_debug"
         )
         llm_cache_dir = llm_cache_folder or os.path.join(self.STATE_FOLDER, "llm_cache")
         self.llm = LLMClient(
@@ -86,7 +88,7 @@ class BaseAgent:
         self.logger.debug("DOT_YACA_FOLDER=%s", self.DOT_YACA_FOLDER)
         self.logger.debug("STATE_FOLDER=%s", self.STATE_FOLDER)
         self.logger.debug("RECYCLE_BIN=%s", self.RECYCLE_BIN)
-        self.logger.debug("AGENT_STATE_FOLDER=%s", self.AGENT_STATE_FOLDER)
+        self.logger.debug("AGENT_STATE_FOLDER=%s", self.AGENT_LOGS_FOLDER)
         self.logger.debug("AGENT_FOLDER=%s", self.AGENT_CODE_FOLDER)
         self.logger.debug("llm_debug_folder=%s", llm_debug_folder)
         self.logger.debug("llm_cache_dir=%s", llm_cache_dir)

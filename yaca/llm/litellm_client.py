@@ -50,8 +50,6 @@ class LLMClient:
         if self.llm_debug_folder is not None:
             self.llm_debug_folder = os.path.abspath(self.llm_debug_folder)
             os.makedirs(self.llm_debug_folder, exist_ok=True)
-            for x in glob.glob(os.path.join(self.llm_debug_folder, "*")):
-                os.remove(x)
 
     def _get_cache_key(self, inputs, params: dict) -> str:
         data = {"inputs": inputs, "params": params}

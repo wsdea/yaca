@@ -1,5 +1,6 @@
 import glob
 import os
+import shutil
 
 from .app import YacaTextualApp
 from .history_manager import HistoryManager
@@ -7,15 +8,11 @@ from ..agents import YacaPlanner
 
 
 def cleanup_agent_debug_artifacts() -> None:
-    STATE_FOLDER = os.path.join(os.getcwd(), ".yaca", ".state")
+    AGENTS_LOG_FOLDER = os.path.join(os.getcwd(), ".yaca", ".state", "agent_logs")
+    if os.path.exists(AGENTS_LOG_FOLDER):
+        shutil.rmtree(AGENTS_LOG_FOLDER, ignore_errors=True)
+        os.makedirs(exist_ok=True)
 
-    debug_files = glob.glob(os.path.join(STATE_FOLDER, "**", "debug*.log"), recursive=True)
-    debug_files += glob.glob(os.path.join(STATE_FOLDER,"**", "llm_log_*"), recursive=True)
-    for file_path in debug_files:
-        try:
-            os.remove(file_path)
-        except (FileNotFoundError, PermissionError):
-            pass
 
 
 def main() -> None:
