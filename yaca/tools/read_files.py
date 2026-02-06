@@ -2,8 +2,6 @@ from ..config import get_cfg_value
 from ..llm import SuccessToolResult
 from .safety import is_path_allowed
 
-MAX_FILES_TO_READ = get_cfg_value("tools.read_files.max_files_to_read")
-
 
 def read_files_tool(agent, files: list[str]):
     # Do not change the docstring as it's imported for tool calling, do not remove this comment
@@ -12,7 +10,9 @@ def read_files_tool(agent, files: list[str]):
     Args:
         - files (str): The path of the files to read.
     """
-    out = read_files_limited(files, MAX_FILES_TO_READ)
+    max_files = get_cfg_value("tools.read_files.max_files_to_read", int)
+
+    out = read_files_limited(files, max_files)
     out = f"<read_files_answer>\n{out}\n</read_files_answer>"
     return SuccessToolResult(out)
 
@@ -53,7 +53,3 @@ def read_file(path: str) -> str:
 
 def add_file_to_relevant_file_tool(agent, files: list[str]):
     return SuccessToolResult("Success")
-
-
-read_files_tool.__doc__ = read_files_tool.__doc__.format(MAX_FILES_TO_READ)
-add_file_to_relevant_file_tool.__doc__ = read_files_tool.__doc__

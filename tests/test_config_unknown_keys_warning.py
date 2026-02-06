@@ -39,7 +39,9 @@ def test_unknown_nested_config_key_emits_warning(tmp_path) -> None:
     yaca.config.loading_config()
     warnings = yaca.config.get_config_warnings()
 
-    assert any("Unknown config key" in w and "llm.unknown_nested" in w for w in warnings)
+    assert any(
+        "Unknown config key" in w and "llm.unknown_nested" in w for w in warnings
+    )
 
 
 def test_only_known_keys_emits_no_unknown_key_warning(tmp_path) -> None:

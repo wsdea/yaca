@@ -80,7 +80,9 @@ def _load_user_config(user_config_path: str) -> dict:
     return parsed
 
 
-def _find_unknown_config_keys(default_cfg: dict, user_cfg: dict, prefix: str = "") -> list[str]:
+def _find_unknown_config_keys(
+    default_cfg: dict, user_cfg: dict, prefix: str = ""
+) -> list[str]:
     unknown = []
     for key, user_value in user_cfg.items():
         path = f"{prefix}.{key}" if prefix else str(key)
@@ -125,7 +127,7 @@ def get_config_warnings() -> list[str]:
     return list(_CACHED_CONFIG_WARNINGS)
 
 
-def get_cfg_value(path: str):
+def get_cfg_value(path: str, expected_type: type = None):
     if not isinstance(path, str) or path.strip() == "":
         raise ValueError("path must be a non-empty string")
 
@@ -136,4 +138,8 @@ def get_cfg_value(path: str):
         if not isinstance(current, dict) or part not in current:
             raise Exception(f"Error loading {path} in config")
         current = current[part]
+    if expected_type is not None and not isinstance(current, expected_type):
+        raise Exception(
+            f"Error parsing config. Expected {path!r} to be of type {expected_type}, but got {type(expected_type)} instead"
+        )
     return current

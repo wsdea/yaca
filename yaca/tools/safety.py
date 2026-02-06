@@ -2,6 +2,8 @@ import fnmatch
 import os
 import re
 
+from ..config import get_cfg_value
+
 DOTSEP = f".{os.sep}"
 
 _UNSAFE_TRIPPED = False
@@ -17,17 +19,17 @@ def is_unsafe_tripped() -> bool:
 
 
 def default_ignores():
-    return [
-        ".git",
-        "*.pyc",
-        ".*cache",
-        "__pycache__",
-        "*.egg*",
-        ".coverage",
-        ".venv*",
-        os.path.join(os.getcwd(), ".yaca", ".state"),
-        # "tests",  # TO BE REMOVED
-    ]
+    ignore_patterns = get_cfg_value("safety.ignore_patterns", list)
+    ignore_patterns = [x.strip() for x in ignore_patterns if isinstance(x, str)]
+    ignore_patterns = [x for x in ignore_patterns if x]
+
+    state_rel = os.path.join(".yaca", ".state")
+    state_abs = os.path.join(os.getcwd(), ".yaca", ".state")
+
+    if state_rel not in ignore_patterns and state_abs not in ignore_patterns:
+        ignore_patterns.append(state_abs)
+
+    return ignore_patterns
 
 
 def _load_gitignore():
@@ -81,12 +83,8 @@ def is_path_allowed(path: str) -> bool:
     if not abs_path.startswith(cwd + os.sep):
         return False
 
-    gitignore_path = os.path.join(cwd, ".gitignore")
-    if not os.path.isfile(gitignore_path):
-        return True
-
-    gitignore_patterns = _load_gitignore()
-    all_rules = _compile_ignore_rules([], default_ignores(), gitignore_patterns)
+    git_rules = _load_gitignore()
+    all_rules = _compile_ignore_rules([], default_ignores(), git_rules)
 
     # Determine if the path matches any ignore rule
     rel_path = os.path.relpath(abs_path, cwd)
@@ -96,32 +94,47 @@ def is_path_allowed(path: str) -> bool:
     return True
 
 
-UNSAFE_KEYWORDS = {
-    "eval",
-    "exec",
-    "compile",
-    "input",
-    "__import__",
-    "globals",
-    "locals",
-    "sys",
-    "subprocess",
-    "shutil",
-    "socket",
-    "ctypes",
-    "pickle",
-    "marshal",
-    "multiprocessing",
-}
-UNSAFE_ATTR_CALLS = {
-    ("os", "system"),
-    ("os", "remove"),
-    ("os", "popen"),
-    ("subprocess", "Popen"),
-    ("subprocess", "call"),
-    ("subprocess", "check_output"),
-    ("subprocess", "run"),
-}
+def _get_unsafe_keywords() -> set[str]:
+    cfg = get_cfg_value("safety.unsafe_keywords", list)
+
+    out = []
+    for x in cfg:
+        if not isinstance(x, str):
+            raise Exception("Unparsable list of unsafe keywords")
+        x = x.strip()
+        if not x:
+            continue
+        out.append(x)
+
+    if not out:
+        raise Exception("Unparsable list of unsafe keywords")
+
+    return set(out)
+
+
+def _get_unsafe_attr_calls() -> set[tuple[str, str]]:
+    cfg = get_cfg_value("safety.unsafe_attr_calls", list)
+
+    out = []
+    for pair in cfg:
+        if (
+            not isinstance(pair, list)
+            or len(pair) != 2
+            or not isinstance(pair[0], str)
+            or not isinstance(pair[1], str)
+        ):
+            raise Exception("Unparsable list of unsafe attribute calls")
+
+        mod = pair[0].strip()
+        attr = pair[1].strip()
+        if not mod or not attr:
+            continue
+        out.append((mod, attr))
+
+    if not out:
+        raise Exception("Unparsable list of unsafe attribute calls")
+
+    return set(out)
 
 
 def code_is_not_safe(code_snippet: str) -> bool:
@@ -130,10 +143,12 @@ def code_is_not_safe(code_snippet: str) -> bool:
     Returns True if unsafe constructs are detected or on parse errors.
     """
     words = re.split(r"\W+", code_snippet)
-    if any(x in UNSAFE_KEYWORDS for x in words):
+    unsafe_keywords = _get_unsafe_keywords()
+    if any(x in unsafe_keywords for x in words):
         return True
 
-    for x, y in UNSAFE_ATTR_CALLS:
+    unsafe_attr_calls = _get_unsafe_attr_calls()
+    for x, y in unsafe_attr_calls:
         if x in words and y in words:
             return True
 

@@ -30,7 +30,7 @@ class LLMClient:
         llm_cache_dir=None,
     ):
         if model_name is None:
-            model_name = get_cfg_value("llm.model")
+            model_name = get_cfg_value("llm.model", str)
 
         self.model_name = model_name
 
@@ -41,8 +41,8 @@ class LLMClient:
         self.openai_client = OpenAI(
             api_key=self.openai_api_key,
             organization=self.openai_org_id,
-            max_retries=get_cfg_value("llm.openai.max_retries"),
-            timeout=get_cfg_value("llm.timeout_seconds"),
+            max_retries=get_cfg_value("llm.openai.max_retries", int),
+            timeout=get_cfg_value("llm.timeout_seconds", int),
         )
 
         # Cache
@@ -104,9 +104,9 @@ class LLMClient:
             messages = [{"role": "user", "content": text_inputs}]
         elif isinstance(text_inputs, list):
             for dic in text_inputs:
-                assert isinstance(
-                    dic, dict
-                ), "type of text_inputs should be a list of dict with 'role' and 'content' keys"
+                assert isinstance(dic, dict), (
+                    "type of text_inputs should be a list of dict with 'role' and 'content' keys"
+                )
                 assert dic.get("role") in [
                     "user",
                     "system",
@@ -153,7 +153,7 @@ class LLMClient:
         Retries up to 3 times on generic errors (e.g., 403 ext_authz_error).
         Sleeps with exponential backoff between attempts.
         """
-        max_retries = get_cfg_value("llm.chat_retry.max_retries")
+        max_retries = get_cfg_value("llm.chat_retry.max_retries", int)
         for attempt in range(1, max_retries + 1):
             try:
                 # First attempt (or retry) to get completion

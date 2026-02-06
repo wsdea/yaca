@@ -3,5 +3,5 @@ attempt_completion:
   #   on_error: blocking
   # - cmd: pytest tests/ui
   #   on_error: blocking
-  - cmd: ruff format .
+  - cmd: ruff format --config ruff.toml .
     on_error: ignore
