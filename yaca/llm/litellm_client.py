@@ -30,13 +30,13 @@ class LLMClient:
 
         self.model_name = model_name
 
-        self.max_retries = get_cfg_value("llm.litellm.max_retries", int)
+        self.max_retries = get_cfg_value("llm.max_retries", int)
         self.timeout_seconds = get_cfg_value("llm.timeout_seconds", int)
 
-        self.api_key_env = get_cfg_value("llm.litellm.api_key_env", str)
+        self.api_key_env = get_cfg_value("llm.api_key_env", str)
         self.api_key = os.environ.get(self.api_key_env)
 
-        self.base_url = get_cfg_value("llm.litellm.base_url")
+        self.base_url = get_cfg_value("llm.base_url")
         if self.base_url is not None and not isinstance(self.base_url, str):
             raise Exception(
                 f"Error parsing config. Expected 'llm.litellm.base_url' to be a string or null, but got {type(self.base_url)} instead"
