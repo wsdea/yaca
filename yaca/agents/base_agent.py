@@ -1,3 +1,4 @@
+import json
 import os
 import sys
 import threading
@@ -270,17 +271,13 @@ class BaseAgent:
 
             processed_tool_txt = ""
             processed_messages = []
-            already_called = set()
+
             for i, (tool_name, kwargs, tool_txt) in enumerate(tool_calls):
                 if self._cancel_event.is_set():
                     self.status_message = "Cancelled"
                     self.logger.debug(f"{self.name} processing cancelled")
                     self.last_result_txt = "Cancelled by user"
                     return AssistantResponse("Cancelled by user")
-
-                if tool_name in already_called:
-                    self.logger.debug(f"Skipping already called tool {tool_name}")
-                    continue
 
                 if i > 0 and tool_name in self.has_to_be_first:
                     self.logger.debug(
@@ -305,7 +302,6 @@ class BaseAgent:
                     raise
 
                 self.logger.debug(f"Tool {tool_name} response : {tool_response}")
-                already_called.add(tool_name)
                 tool_response.tool_name = tool_name
                 processed_tool_txt += "\n" + tool_txt
                 processed_messages.append(tool_response)

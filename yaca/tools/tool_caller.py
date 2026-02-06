@@ -54,6 +54,29 @@ class ToolCaller:
 
         return xml_text
 
+    def normalize_for_fingerprint(self, x):
+        """Function to normalized the kwargs for hash computation"""
+        if isinstance(x, dict):
+            out = {}
+            for k in sorted(x.keys()):
+                if k == "agent":
+                    continue
+                out[str(k)] = self.normalize_for_fingerprint(x[k])
+            return out
+
+        if isinstance(x, list):
+            return [self.normalize_for_fingerprint(v) for v in x]
+
+        if isinstance(x, tuple):
+            return [self.normalize_for_fingerprint(v) for v in x]
+
+        return x
+
+    def kwargs_fingerprint(self, kwargs: dict) -> str:
+        """Computes the hash of the kwargs"""
+        normalized = self.normalize_for_fingerprint(kwargs)
+        return json.dumps(normalized, sort_keys=True, separators=(",", ":"), default=str)
+
     def text_to_kwargs(self, xml_text: str) -> list[tuple]:
         assert hasattr(self, "tools"), "You need to call set_tools first"
 
@@ -62,6 +85,7 @@ class ToolCaller:
         xml_text = self.clean_xml(xml_text)
 
         tool_calls = []
+        seen = set()
 
         tool_pattern = re.compile(
             r"""
@@ -99,6 +123,12 @@ class ToolCaller:
                     arg_value = arg_match.group(2).strip()
 
                     kwargs[arg_name] = arg_value
+
+            call_key = (tool_name, self.kwargs_fingerprint(kwargs))
+            if call_key in seen:
+                #we dont run twice the same tool with the same kwargs
+                continue
+            seen.add(call_key)
 
             tool_calls.append((tool_name, kwargs, tool_string))
 
