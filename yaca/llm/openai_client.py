@@ -7,8 +7,8 @@ from threading import Lock
 
 from openai import APIConnectionError, AuthenticationError, OpenAI
 
+from ..config import get_cfg_value
 from .json import load_json, save_json
-from .llm_conf import MAX_INPUT_TOKENS_PER_MODEL, LLMModel
 from .messages import Message
 
 GLOBAL_COUNT = 0
@@ -25,12 +25,14 @@ class TokenRefreshError(Exception):
 class LLMClient:
     def __init__(
         self,
-        model_name=LLMModel.GPT52,
+        model_name: str | None = None,
         llm_debug_folder=None,
         llm_cache_dir=None,
     ):
+        if model_name is None:
+            model_name = get_cfg_value("llm.model")
+
         self.model_name = model_name
-        self.max_input_tokens = MAX_INPUT_TOKENS_PER_MODEL[self.model_name]
 
         # Openai
         self.openai_base_url = None
@@ -39,7 +41,8 @@ class LLMClient:
         self.openai_client = OpenAI(
             api_key=self.openai_api_key,
             organization=self.openai_org_id,
-            max_retries=5,
+            max_retries=get_cfg_value("llm.openai.max_retries"),
+            timeout=get_cfg_value("llm.timeout_seconds"),
         )
 
         # Cache
@@ -90,7 +93,7 @@ class LLMClient:
         else:
             self.cache_file = os.path.join(
                 self.llm_clients_cache_dir,
-                f"{self.__class__.__name__}_{str(self.model_name).replace('/', '-')}_{self.max_input_tokens}.json",
+                f"{self.__class__.__name__}_{str(self.model_name).replace('/', '-')}.json",
             )
             os.makedirs(os.path.dirname(self.cache_file), exist_ok=True)
             self.cache_lock = Lock()
@@ -101,9 +104,9 @@ class LLMClient:
             messages = [{"role": "user", "content": text_inputs}]
         elif isinstance(text_inputs, list):
             for dic in text_inputs:
-                assert isinstance(
-                    dic, dict
-                ), "type of text_inputs should be a list of dict with 'role' and 'content' keys"
+                assert isinstance(dic, dict), (
+                    "type of text_inputs should be a list of dict with 'role' and 'content' keys"
+                )
                 assert dic.get("role") in [
                     "user",
                     "system",
@@ -150,7 +153,7 @@ class LLMClient:
         Retries up to 3 times on generic errors (e.g., 403 ext_authz_error).
         Sleeps with exponential backoff between attempts.
         """
-        max_retries = 3
+        max_retries = get_cfg_value("llm.chat_retry.max_retries")
         for attempt in range(1, max_retries + 1):
             try:
                 # First attempt (or retry) to get completion

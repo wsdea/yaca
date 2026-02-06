@@ -7,6 +7,8 @@ llm:
     max_retries: 3
 
 tools:
+  list_files:
+    max_depth: 3
   read_files:
     max_files_to_read: 5
   search:

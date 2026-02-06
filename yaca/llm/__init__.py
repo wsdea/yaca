@@ -1,4 +1,3 @@
-from .llm_conf import LLMModel
 from .messages import (
     AttemptedToolCall,
     FailedToolResult,

@@ -2,6 +2,8 @@ import os
 
 import yaml
 
+_CACHED_CONFIG = None
+
 
 def _loading_yaml(path):
     if not os.path.exists(path):
@@ -79,3 +81,24 @@ def loading_config() -> dict:
     user_cfg = _load_user_config(user_config_path)
 
     return _merging_dicts(default_cfg, user_cfg)
+
+
+def get_cfg() -> dict:
+    global _CACHED_CONFIG
+    if _CACHED_CONFIG is None:
+        _CACHED_CONFIG = loading_config()
+    return _CACHED_CONFIG
+
+
+def get_cfg_value(path: str):
+    if not isinstance(path, str) or path.strip() == "":
+        raise ValueError("path must be a non-empty string")
+
+    cfg = get_cfg()
+
+    current = cfg
+    for part in path.split("."):
+        if not isinstance(current, dict) or part not in current:
+            raise Exception(f"Error loading {path} in config")
+        current = current[part]
+    return current

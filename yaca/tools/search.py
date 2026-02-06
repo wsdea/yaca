@@ -1,13 +1,14 @@
 import os
 import re
 
+from ..config import get_cfg_value
 from ..llm import FailedToolResult, SuccessToolResult, find_json
 from .list_files import list_files
 from .open_files import open_files_tool
 from .prompt_loader import PromptLoader
 from .read_files import read_file
 
-MAX_RESULTS = 30
+MAX_RESULTS = get_cfg_value("tools.search.max_results")
 
 
 prompt_loader = PromptLoader(prompt_folder=os.path.dirname(__file__))

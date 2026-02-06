@@ -1,7 +1,8 @@
+from ..config import get_cfg_value
 from ..llm import SuccessToolResult
 from .safety import is_path_allowed
 
-MAX_FILES_TO_READ = 5
+MAX_FILES_TO_READ = get_cfg_value("tools.read_files.max_files_to_read")
 
 
 def read_files_tool(agent, files: list[str]):

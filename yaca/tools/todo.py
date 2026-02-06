@@ -5,7 +5,6 @@ from ..llm import FailedToolResult, SuccessToolResult, find_json
 from .open_files import open_files_tool
 from .prompt_loader import PromptLoader
 
-MAX_RESULTS = 30
 TODO_STATUSES = ["pending", "done"]
 
 prompt_loader = PromptLoader(prompt_folder=os.path.dirname(__file__))
@@ -93,7 +92,7 @@ def start_coding_task_tool(
     )
 
     if result.tool_name == "cannot_do":
-        agent.logger.debug(f"Coding task could be done:{result.txt}")
+        agent.logger.debug(f"Coding task could NOT be done:{result.txt}")
         return FailedToolResult(
             f"Coding task could not be done properly. Here is an explaination from the coder :\n{result.txt}"
         )
