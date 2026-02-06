@@ -1,2 +1,5 @@
 llm:
-  model: "gpt-5.2"
+  model: "openai/gpt-5.2"
+  litellm:
+    max_retries: 5
+    api_key_env: "OPENAI_API_KEY"

@@ -30,7 +30,7 @@ class LLMClient:
 
         self.model_name = model_name
 
-        self.litellm_max_retries = get_cfg_value("llm.litellm.max_retries", int)
+        self.max_retries = get_cfg_value("llm.litellm.max_retries", int)
         self.timeout_seconds = get_cfg_value("llm.timeout_seconds", int)
 
         self.api_key_env = get_cfg_value("llm.litellm.api_key_env", str)
@@ -119,7 +119,7 @@ class LLMClient:
             "model": self.model_name,
             "messages": messages,
             "timeout": self.timeout_seconds,
-            "num_retries": self.litellm_max_retries,
+            "num_retries": self.max_retries,
         }
 
         if self.base_url is not None:
