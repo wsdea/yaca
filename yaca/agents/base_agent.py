@@ -118,8 +118,8 @@ class BaseAgent:
         )
         # tools that can only be called when they are the first tool to call in the xml
         self.has_to_be_first = [
-            "update_todo",
-            "start_coding_task",
+            # "update_todo",
+            # "start_coding_task",
             "ask_questions",
         ]
         for x in self.has_to_be_first:

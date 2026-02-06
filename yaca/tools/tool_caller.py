@@ -75,7 +75,9 @@ class ToolCaller:
     def kwargs_fingerprint(self, kwargs: dict) -> str:
         """Computes the hash of the kwargs"""
         normalized = self.normalize_for_fingerprint(kwargs)
-        return json.dumps(normalized, sort_keys=True, separators=(",", ":"), default=str)
+        return json.dumps(
+            normalized, sort_keys=True, separators=(",", ":"), default=str
+        )
 
     def text_to_kwargs(self, xml_text: str) -> list[tuple]:
         assert hasattr(self, "tools"), "You need to call set_tools first"
@@ -126,7 +128,7 @@ class ToolCaller:
 
             call_key = (tool_name, self.kwargs_fingerprint(kwargs))
             if call_key in seen:
-                #we dont run twice the same tool with the same kwargs
+                # we dont run twice the same tool with the same kwargs
                 continue
             seen.add(call_key)
 
