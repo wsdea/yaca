@@ -4,6 +4,17 @@ import re
 
 DOTSEP = f".{os.sep}"
 
+_UNSAFE_TRIPPED = False
+
+
+def set_unsafe_tripped() -> None:
+    global _UNSAFE_TRIPPED
+    _UNSAFE_TRIPPED = True
+
+
+def is_unsafe_tripped() -> bool:
+    return _UNSAFE_TRIPPED
+
 
 def default_ignores():
     return [

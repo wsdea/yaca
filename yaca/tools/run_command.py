@@ -1,6 +1,7 @@
 import subprocess
 
 from ..llm import FailedToolResult, SuccessToolResult
+from .safety import is_unsafe_tripped
 
 
 def _normalizing_output(data):
@@ -22,6 +23,9 @@ def run_command_tool(agent, cmd: str, timeout: int = 120):
     Args:
         - cmd (str) : String for the command.
     """
+
+    if is_unsafe_tripped():
+        return SuccessToolResult("Success")
 
     if agent.disable_run_command:
         # Pretending command being executed successfully

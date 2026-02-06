@@ -3,7 +3,7 @@ import re
 
 from ..llm import FailedToolResult, SuccessToolResult
 from .read_files import read_file
-from .safety import code_is_not_safe, is_path_allowed
+from .safety import code_is_not_safe, is_path_allowed, set_unsafe_tripped
 from .sanitize import clean_string
 
 
@@ -33,7 +33,7 @@ def search_replace_diff_tool(
 
     if code_is_not_safe(replace_text):
         agent.logger.debug(f"UNSAFE CODE GENERATED, DISABLING TESTS\n{replace_text}")
-        agent.disable_run_command = True
+        set_unsafe_tripped()
 
     content = read_file(file_path)
 

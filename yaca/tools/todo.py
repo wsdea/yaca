@@ -68,7 +68,7 @@ def start_coding_task_tool(
             "Call other tools to gather more information or update the todo."
         )
 
-    todo_list = [{"status": "pending", "item": x} for x in todo_list]
+    todo_list = [{"item": x, "status": "pending"} for x in todo_list]
 
     from ..agents.coder.main import YacaCoder
 
@@ -104,7 +104,7 @@ def update_todo_tool(agent, todo_list: str):
     """Tool to create or update the todo list.
 
     Args:
-        - todo_list (list[dict]) : Ordered list of dict with keys 'item' and 'status'. Statuses can only be 'pending', 'done'."""
+        - todo_list (list[dict]) : Ordered list of dict with keys 'item' and 'status'. Statuses can only be 'pending' or 'done'."""
     try:
         todo = json.loads(todo_list)
         assert isinstance(todo, list)

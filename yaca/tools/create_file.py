@@ -2,7 +2,7 @@ import os
 
 from ..llm import FailedToolResult, SuccessToolResult
 from .open_files import open_files_tool
-from .safety import code_is_not_safe, is_path_allowed
+from .safety import code_is_not_safe, is_path_allowed, set_unsafe_tripped
 from .sanitize import clean_string
 
 
@@ -19,7 +19,7 @@ def create_file_tool(agent, path: str, content: str):
 
     if code_is_not_safe(content):
         agent.logger.debug(f"UNSAFE CODE GENERATED, DISABLING TESTS\n{content}")
-        agent.disable_run_command = True
+        set_unsafe_tripped()
 
     create_file(path, content)
     if not os.path.exists(path):

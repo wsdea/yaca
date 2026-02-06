@@ -9,6 +9,7 @@ from textual.reactive import reactive
 from textual.widgets import Collapsible, Input, Markdown, Static
 
 from ..agents import YacaPlanner
+from ..tools.safety import is_unsafe_tripped
 from .history_manager import HistoryManager
 
 YACA_STARTUP_MESSAGE = """```
@@ -56,6 +57,8 @@ class YacaTextualApp(App):
 
     def compose(self) -> ComposeResult:
         with Container(id="top"):
+            yield Static("", id="unsafe_warning")
+
             with Horizontal(id="status_row"):
                 yield Static("", id="status")
 
@@ -116,6 +119,13 @@ class YacaTextualApp(App):
         status_message = self.agent.status_message
         status = f"Status: {status_message}"
         self.query_one("#status", Static).update(status)
+
+        warning = self.query_one("#unsafe_warning", Static)
+        warning.display = bool(is_unsafe_tripped())
+        if warning.display:
+            warning.update(
+                "WARNING:\nYACA may have generated unsafe code. Please double-check before running commands such as tests. Hooks have been disabled. Review the generated code, and restart YACA to re-enable all features."
+            )
 
         open_files = self.query_one("#open_files", Collapsible)
         open_files.display = bool(self.agent.open_files)
