@@ -65,14 +65,12 @@ class BaseAgent:
         self.AGENT_STATE_FOLDER = os.path.join(self.STATE_FOLDER, self.name)
         os.makedirs(self.AGENT_STATE_FOLDER, exist_ok=True)
         # dir of the subclass
-        self.AGENT_FOLDER = os.path.dirname(
+        self.AGENT_CODE_FOLDER = os.path.dirname(
             sys.modules[self.__class__.__module__].__file__
         )
-        os.makedirs(self.AGENT_FOLDER, exist_ok=True)
+        os.makedirs(self.AGENT_CODE_FOLDER, exist_ok=True)
 
-        log_file_path = os.path.join(
-            self.STATE_FOLDER, f"debug-{self.name}-{self.id}.log"
-        )
+        log_file_path = os.path.join(self.AGENT_STATE_FOLDER, f"debug-{self.id}.log")
         self.logger = Logger(log_file_path)
 
         llm_debug_folder = llm_debug_folder or os.path.join(
@@ -89,11 +87,11 @@ class BaseAgent:
         self.logger.debug("STATE_FOLDER=%s", self.STATE_FOLDER)
         self.logger.debug("RECYCLE_BIN=%s", self.RECYCLE_BIN)
         self.logger.debug("AGENT_STATE_FOLDER=%s", self.AGENT_STATE_FOLDER)
-        self.logger.debug("AGENT_FOLDER=%s", self.AGENT_FOLDER)
+        self.logger.debug("AGENT_FOLDER=%s", self.AGENT_CODE_FOLDER)
         self.logger.debug("llm_debug_folder=%s", llm_debug_folder)
         self.logger.debug("llm_cache_dir=%s", llm_cache_dir)
 
-        self.prompt_loader = PromptLoader(self.AGENT_FOLDER)
+        self.prompt_loader = PromptLoader(self.AGENT_CODE_FOLDER)
 
         hooks_yaml_path = os.path.join(self.DOT_YACA_FOLDER, "hooks.yaml")
         self.logger.debug("hooks_yaml_path=%s", hooks_yaml_path)

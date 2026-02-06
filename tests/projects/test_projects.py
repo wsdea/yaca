@@ -65,7 +65,7 @@ def run_verification(agent, project_dir: str, mirror_src: str):
 @pytest.mark.parametrize(
     "project_name",
     [
-        pytest.param(name, marks=[pytest.mark.fast, pytest.mark.projects])
+        pytest.param(name, marks=[pytest.mark.fast])
         if name in FAST_PROJECTS
         else pytest.param(name)
         for name in discover_projects()
