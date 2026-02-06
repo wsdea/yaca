@@ -39,7 +39,7 @@ class LLMClient:
         self.base_url = get_cfg_value("llm.base_url")
         if self.base_url is not None and not isinstance(self.base_url, str):
             raise Exception(
-                f"Error parsing config. Expected 'llm.litellm.base_url' to be a string or null, but got {type(self.base_url)} instead"
+                f"Error parsing config. Expected 'llm.base_url' to be a string or null, but got {type(self.base_url)} instead"
             )
         self.llm_clients_cache_dir = llm_cache_dir
         if self.llm_clients_cache_dir:
