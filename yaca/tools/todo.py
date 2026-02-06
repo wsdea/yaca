@@ -59,6 +59,11 @@ def start_coding_task_tool(
     if not relevant_files:
         return FailedToolResult("No relevant_files list is empty")
 
+    if len(relevant_files) > 5:
+        return FailedToolResult(
+            "Too many relevant files. Split your task into multiple subtasks, and run this tool again with the first sub task."
+        )
+
     error = validate_todo(agent, todo_list, user_request)
 
     if error:
