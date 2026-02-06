@@ -11,7 +11,7 @@ def cleanup_agent_debug_artifacts() -> None:
     AGENTS_LOG_FOLDER = os.path.join(os.getcwd(), ".yaca", ".state", "agent_logs")
     if os.path.exists(AGENTS_LOG_FOLDER):
         shutil.rmtree(AGENTS_LOG_FOLDER, ignore_errors=True)
-        os.makedirs(exist_ok=True)
+        os.makedirs(AGENTS_LOG_FOLDER, exist_ok=True)
 
 
 
