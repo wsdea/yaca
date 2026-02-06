@@ -56,6 +56,8 @@ def start_coding_task_tool(
         - relevant_files (list[str]) : List of files to open or create to solve this task
         - todo_list (list[str]) : Ordered list of items to do
     """
+    if not relevant_files:
+        return FailedToolResult("No relevant_files list is empty")
 
     error = validate_todo(agent, todo_list, user_request)
 
@@ -72,9 +74,9 @@ def start_coding_task_tool(
 
     coder = YacaCoder(todo_list=todo_list, _pytest=agent._pytest)
 
-    if relevant_files:
-        open_files_tool(coder, relevant_files, overwrite=True)
+    open_files_tool(coder, relevant_files, overwrite=True, discard_non_existing=False)
 
+    assert len(coder.open_files) > 0
     agent.logger.debug(
         f"Running coding agent with \nopen_files={coder.open_files}\ntodo_list={coder.todo_list}\nlast_list_files={coder.last_list_files}"
     )
@@ -94,7 +96,7 @@ def start_coding_task_tool(
     agent.logger.debug(f"Coding task done:{result.txt}")
 
     return SuccessToolResult(
-        f"Coding task is done, here is the summary :\n{result.txt}\nTell the user what has been done, and then ask **one** follow-up question of what to do next."
+        f"Coding task is done, here is the summary :\n{result.txt}\nUse the tool to ask a question. In the message, first repeat what has been done in all the previous coding tasks so far, and then ask **one** follow-up question of what to do next."
     )
 
 

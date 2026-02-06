@@ -243,9 +243,7 @@ class YacaTextualApp(App):
 
         self.agent.is_running = False
         self.last_error = (
-            "Agent crashed\n\n"
-            f"{type(exc).__name__}: {exc}\n\n"
-            f"{formatted}"
+            "Agent crashed\n\n" f"{type(exc).__name__}: {exc}\n\n" f"{formatted}"
         )
         self.call_later(self.refresh_from_agent)
 
@@ -273,6 +271,10 @@ class YacaTextualApp(App):
         input.value = ""
 
         stripped = message.strip()
+        if stripped == "":
+            self.call_later(self.refresh_from_agent)
+            return
+
         if stripped == "/reset":
             self.agent.reset()
             self.agent.last_result_txt = ""

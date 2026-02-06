@@ -14,7 +14,7 @@ def create_file_tool(agent, path: str, content: str):
         - path (str): The filesystem path where the file will be created or overwritten.
         - content (str): The text content to write into the file.
     """
-    if not is_path_allowed(path):
+    if path not in agent.open_files or not is_path_allowed(path):
         return FailedToolResult(f"Path not allowed: {path}")
 
     if code_is_not_safe(content):

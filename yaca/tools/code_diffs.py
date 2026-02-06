@@ -26,7 +26,7 @@ def search_replace_diff_tool(
         - indent_string (str, default ``''``): If non‑empty, each line of ``replace_text`` will be prefixed with this string before replacement.
         - allow_multiple_matches (bool, default ``False``): For most usecases, keep as False. If ``True`` all occurrences are replaced. If ``False`` and more than one occurrence is found, the function returns an error.
     """
-    if not is_path_allowed(file_path):
+    if file_path not in agent.open_files or not is_path_allowed(file_path):
         return FailedToolResult(f"Path not allowed: {file_path}")
     if not os.path.exists(file_path):
         return FailedToolResult(f"Target file does not exist: {file_path}")

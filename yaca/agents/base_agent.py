@@ -56,7 +56,9 @@ class BaseAgent:
         self.status_message = ""
         self.running_subagents = {}
 
-        self.DOT_YACA_FOLDER = os.path.join(os.getcwd(), ".yaca")
+        # paths
+        self.CWD = os.getcwd()
+        self.DOT_YACA_FOLDER = os.path.join(self.CWD, ".yaca")
         self.STATE_FOLDER = os.path.join(self.DOT_YACA_FOLDER, ".state")
         os.makedirs(self.STATE_FOLDER, exist_ok=True)
 
@@ -226,7 +228,7 @@ class BaseAgent:
         self.status_message = "Waiting for user message"
 
     # Context management
-    def _trim_attempted_tool_calls(self) -> None:
+    def _trim_attempted_tool_calls(self, n_lines=6) -> None:
         """Trim AttemptedToolCall messages to keep conversation compact."""
         attempted_tool_calls = [
             x for x in self.conversation if isinstance(x, AttemptedToolCall)
@@ -241,10 +243,10 @@ class BaseAgent:
                 continue
 
             lines = msg.txt.splitlines()
-            if len(lines) <= 6:
+            if len(lines) <= n_lines * 2:
                 continue
 
-            msg.txt = "\n".join(lines[:3] + ["[..]"] + lines[-3:])
+            msg.txt = "\n".join(lines[:n_lines] + ["[...]"] + lines[-n_lines:])
 
     def prepare_conversation(self) -> list[Message]:
         """Build the LLM-ready conversation, injecting helper context messages."""
