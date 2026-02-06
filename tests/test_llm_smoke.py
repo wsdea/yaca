@@ -7,7 +7,7 @@ from yaca.llm.litellm_client import LLMClient
 
 
 def test_llm_smoke():
-    api_key_env = get_cfg_value("llm.litellm.api_key_env", str)
+    api_key_env = get_cfg_value("llm.api_key_env", str)
     api_key = os.environ.get(api_key_env)
     if not api_key:
         pytest.skip(
