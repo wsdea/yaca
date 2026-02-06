@@ -217,7 +217,6 @@ class BaseAgent:
 
     def prepare_conversation(self) -> list[Message]:
         """Build the LLM-ready conversation, injecting helper context messages."""
-        self.logger.debug("conversation_for_llm start")
         # cleaning helper messages
         # They may be added back by the subclass
         self.conversation = [

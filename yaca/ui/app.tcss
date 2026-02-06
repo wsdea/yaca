@@ -26,7 +26,7 @@ Screen {
   color: #93c5fd;
 }
 
-#unsafe_warning {
+#warnings_banner {
   display: none;
   height: auto;
   padding: 0 1;

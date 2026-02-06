@@ -9,6 +9,7 @@ from textual.reactive import reactive
 from textual.widgets import Collapsible, Input, Markdown, Static
 
 from ..agents import YacaPlanner
+from ..config import get_config_warnings
 from ..tools.safety import is_unsafe_tripped
 from .history_manager import HistoryManager
 
@@ -57,7 +58,7 @@ class YacaTextualApp(App):
 
     def compose(self) -> ComposeResult:
         with Container(id="top"):
-            yield Static("", id="unsafe_warning")
+            yield Static("", id="warnings_banner")
 
             with Horizontal(id="status_row"):
                 yield Static("", id="status")
@@ -120,11 +121,21 @@ class YacaTextualApp(App):
         status = f"Status: {status_message}"
         self.query_one("#status", Static).update(status)
 
-        warning = self.query_one("#unsafe_warning", Static)
-        warning.display = bool(is_unsafe_tripped())
-        if warning.display:
-            warning.update(
-                "WARNING:\nYACA may have generated unsafe code. Please double-check before running commands (including tests). All command running abilities and hooks have been disabled. Review the generated code, and restart YACA to re-enable all features."
+        warnings = []
+
+        if is_unsafe_tripped():
+            warnings.append(
+                "YACA may have generated unsafe code. Please double-check before running commands (including tests). "
+                "All command running abilities and hooks have been disabled. Review the generated code, and restart YACA to re-enable all features."
+            )
+
+        warnings.extend(get_config_warnings())
+
+        warning_banner = self.query_one("#warnings_banner", Static)
+        warning_banner.display = bool(warnings)
+        if warning_banner.display:
+            warning_banner.update(
+                "Warnings:\n" + "\n".join([f"- {w}" for w in warnings])
             )
 
         open_files = self.query_one("#open_files", Collapsible)
