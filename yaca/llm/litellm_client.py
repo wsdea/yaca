@@ -71,8 +71,25 @@ class LLMClient:
             self.cache_data[key] = value
 
             try:
-                save_json(self.cache_file, self.cache_data)
+                on_disk = {}
+                if os.path.exists(self.cache_file):
+                    on_disk = load_json(self.cache_file)
+
+                if not isinstance(on_disk, dict):
+                    on_disk = {}
+
+                on_disk[key] = value
+                self.cache_data = on_disk
+                save_json(
+                    self.cache_file,
+                    self.cache_data,
+                    use_lock=True,
+                    lock_timeout_seconds=10,
+                    retry_sleep_seconds=0.05,
+                )
             except PermissionError:
+                pass
+            except TimeoutError:
                 pass
 
     def _load_cache_from_disk(self) -> dict:
