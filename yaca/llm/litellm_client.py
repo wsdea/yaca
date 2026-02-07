@@ -22,8 +22,8 @@ class LLMClient:
     def __init__(
         self,
         model_name: str | None = None,
-        llm_debug_folder=None,
-        llm_cache_dir=None,
+        debug_folder=None,
+        cache_file=None,
     ):
         if model_name is None:
             model_name = get_cfg_value("llm.model", str)
@@ -41,20 +41,26 @@ class LLMClient:
             raise Exception(
                 f"Error parsing config. Expected 'llm.base_url' to be a string or null, but got {type(self.base_url)} instead"
             )
-        self.llm_clients_cache_dir = llm_cache_dir
-        if self.llm_clients_cache_dir:
-            self.llm_clients_cache_dir = os.path.abspath(self.llm_clients_cache_dir)
+
+        self.cache_file = cache_file
+        if self.cache_file is not None:
+            self.cache_file = os.path.abspath(self.cache_file)
         self.init_get_cache()
 
-        self.llm_debug_folder = llm_debug_folder
-        if self.llm_debug_folder is not None:
-            self.llm_debug_folder = os.path.abspath(self.llm_debug_folder)
-            os.makedirs(self.llm_debug_folder, exist_ok=True)
+        self.debug_folder = debug_folder
+        if self.debug_folder is not None:
+            self.debug_folder = os.path.abspath(self.debug_folder)
+            os.makedirs(self.debug_folder, exist_ok=True)
 
-    def _get_cache_key(self, inputs, params: dict) -> str:
-        data = {"inputs": inputs, "params": params}
-        cache_key_data = json.dumps(data, sort_keys=True)
-        return hashlib.sha256(cache_key_data.encode()).hexdigest()
+    def _get_cache_key(self, messages: list[dict], params: dict) -> str:
+        data = {
+            "model_name": self.model_name,
+            "base_url": self.base_url,
+            "messages": messages,
+            "params": params,
+        }
+        cache_key_data = json.dumps(data, sort_keys=True, ensure_ascii=False)
+        return hashlib.sha256(cache_key_data.encode("utf-8")).hexdigest()
 
     def _get_from_cache(self, key):
         with self.cache_lock:
@@ -77,16 +83,11 @@ class LLMClient:
                 self.cache_data = {}
 
     def init_get_cache(self):
-        if self.llm_clients_cache_dir is None:
-            self.cache_file = None
-        else:
-            self.cache_file = os.path.join(
-                self.llm_clients_cache_dir,
-                f"{self.__class__.__name__}_{str(self.model_name).replace('/', '-')}.json",
-            )
-            os.makedirs(os.path.dirname(self.cache_file), exist_ok=True)
-            self.cache_lock = Lock()
-            self._load_cache_from_disk()
+        if self.cache_file is None:
+            return
+        os.makedirs(os.path.dirname(self.cache_file), exist_ok=True)
+        self.cache_lock = Lock()
+        self._load_cache_from_disk()
 
     def inputs_to_messages(self, text_inputs):
         if isinstance(text_inputs, str):
@@ -166,8 +167,8 @@ class LLMClient:
             text_inputs = self.messages_to_dicts(text_inputs)
 
         result = None
-        if self.cache_file:
-            key = self._get_cache_key((text_inputs,), {})
+        if self.cache_file is not None:
+            key = self._get_cache_key(text_inputs, {})
             result = self._get_from_cache(key)
 
             if isinstance(result, str):
@@ -177,25 +178,24 @@ class LLMClient:
         if result is None:
             result = self._chat_completion(text_inputs=text_inputs)
 
-            if self.cache_file:
+            if self.cache_file is not None:
                 self._set_cache_key(key, result)
 
         global GLOBAL_COUNT
-        if self.llm_debug_folder is not None:
+        if self.debug_folder is not None:
             file = os.path.join(
-                self.llm_debug_folder, f"llm_log_{int(time.time())}-{GLOBAL_COUNT}.txt"
+                self.debug_folder, f"llm_log_{int(time.time())}-{GLOBAL_COUNT}.txt"
             )
-            debug_inputs = text_inputs
-            if isinstance(debug_inputs, list):
-                debug_inputs = "\n".join(
+            if isinstance(text_inputs, list):
+                text_inputs = "\n".join(
                     [
                         f"\n\n**{dic['role']}**\n\n{dic['content']}"
-                        for dic in debug_inputs
+                        for dic in text_inputs
                     ]
                 )
             with open(file, "w", encoding="utf-8") as f:
                 f.write(
-                    f"{debug_inputs}\n\n\n\n{'=' * 30}\nReasoning:\n{'=' * 30}\n\n{result['reasoning']}\n\n\n\n{'=' * 30}\nAnswer:\n{'=' * 30}\n\n{result['answer']}"
+                    f"{text_inputs}\n\n\n\n{'=' * 30}\nReasoning:\n{'=' * 30}\n\n{result['reasoning']}\n\n\n\n{'=' * 30}\nAnswer:\n{'=' * 30}\n\n{result['answer']}"
                 )
             GLOBAL_COUNT += 1
 

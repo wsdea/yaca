@@ -28,10 +28,10 @@ def discover_projects() -> list[str]:
 def run_task(working_dir, task):
     original_wd = os.getcwd()
     # we keep the original cache for faster tests
-    llm_cache_folder = os.path.join(original_wd, ".yaca", ".state", "llm_cache")
+    llm_cache_file = os.path.join(original_wd, ".yaca", ".state", "llm_cache.json")
     try:
         os.chdir(working_dir)
-        CHATBOT = YacaPlanner(_pytest=True, llm_cache_folder=llm_cache_folder)
+        CHATBOT = YacaPlanner(_pytest=True, llm_cache_file=llm_cache_file)
         CHATBOT(task)
     finally:
         os.chdir(original_wd)

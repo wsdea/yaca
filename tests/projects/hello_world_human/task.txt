@@ -1,4 +1,4 @@
-Create two Python files in the working directory (the mirrored `src/` folder):
+Create two Python files in the working directory:
 
 - `helloworld.py`
 - `hellohuman.py`

@@ -52,9 +52,8 @@ class ToolCaller:
         if not xml_text.endswith("</yaca_tool>"):
             xml_text += "</yaca_tool>"
 
-        if xml_text.startwith("<![CDATA["):
-            xml_text = xml_text.removeprefix("<![CDATA[")
-            xml_text = xml_text.removesuffix("]]>")
+        xml_text = xml_text.replace("<![CDATA[", "")
+        xml_text = xml_text.replace("]]>", "")
 
         return xml_text
 

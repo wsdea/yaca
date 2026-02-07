@@ -76,7 +76,11 @@ def start_coding_task_tool(
 
     from ..agents.coder.main import YacaCoder
 
-    coder = YacaCoder(todo_list=todo_list, _pytest=agent._pytest)
+    coder = YacaCoder(
+        todo_list=todo_list,
+        _pytest=agent._pytest,
+        llm_cache_file=agent.llm.cache_file,
+    )
 
     open_files_tool(coder, relevant_files, overwrite=True, discard_non_existing=False)
 

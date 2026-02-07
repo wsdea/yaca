@@ -36,14 +36,14 @@ class BaseAgent:
         self,
         _pytest: bool = False,
         llm_debug_folder: str | None = None,
-        llm_cache_folder: str | None = None,
+        llm_cache_file: str | None = None,
     ) -> None:
         """Initialize the agent and wire up tools, logging, and LLM client.
 
         Args:
             _pytest: Whether the agent is running under pytest (adjusts tool set).
             llm_debug_folder: Folder where raw LLM exchanges can be logged.
-            llm_cache_folder: Folder used to cache LLM responses.
+            llm_cache_file: File to cache LLM responses.
         """
         self.id = str(uuid.uuid4())
         self.name = self.__class__.__name__
@@ -79,10 +79,12 @@ class BaseAgent:
         llm_debug_folder = llm_debug_folder or os.path.join(
             self.AGENT_LOGS_FOLDER, "llm_debug"
         )
-        llm_cache_dir = llm_cache_folder or os.path.join(self.STATE_FOLDER, "llm_cache")
+        llm_cache_file = llm_cache_file or os.path.join(
+            self.STATE_FOLDER, "llm_cache.json"
+        )
         self.llm = LLMClient(
-            llm_debug_folder=llm_debug_folder,
-            llm_cache_dir=llm_cache_dir,
+            debug_folder=llm_debug_folder,
+            cache_file=llm_cache_file,
         )
 
         self.logger.debug("CWD=%s", self.CWD)
@@ -92,7 +94,7 @@ class BaseAgent:
         self.logger.debug("AGENT_STATE_FOLDER=%s", self.AGENT_LOGS_FOLDER)
         self.logger.debug("AGENT_FOLDER=%s", self.AGENT_CODE_FOLDER)
         self.logger.debug("llm_debug_folder=%s", llm_debug_folder)
-        self.logger.debug("llm_cache_dir=%s", llm_cache_dir)
+        self.logger.debug("llm_cache_file=%s", llm_cache_file)
 
         self.prompt_loader = PromptLoader(self.AGENT_CODE_FOLDER)
 
