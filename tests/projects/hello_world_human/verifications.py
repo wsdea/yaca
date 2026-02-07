@@ -4,8 +4,7 @@ import os
 from yaca.tools.read_files import read_file
 
 
-
-def verify(src_folder: str) -> None:
+def verify(agent, src_folder: str) -> None:
     required = ["helloworld.py", "hellohuman.py"]
 
     for filename in required:

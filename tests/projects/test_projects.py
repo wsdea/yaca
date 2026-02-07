@@ -13,6 +13,7 @@ FAST_PROJECTS = [
     "create_file",
     "delete_file",
     "pathlib_to_ospath",
+    "hello_world_human",
 ]
 
 

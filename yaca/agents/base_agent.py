@@ -229,8 +229,6 @@ class BaseAgent:
 
     def set_tools(self, *tools: str) -> None:
         """Restrict which tools the LLM is allowed to call."""
-        if self._pytest:
-            tools = [x for x in tools if x != "ask_questions"]
         self.tool_caller.set_tools(tools)
 
     # Main loop
