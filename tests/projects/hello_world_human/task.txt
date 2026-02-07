@@ -1,0 +1,8 @@
+Create two Python files in the working directory (the mirrored `src/` folder):
+
+- `helloworld.py`
+- `hellohuman.py`
+
+Each file must:
+- include a `if __name__ == "__main__":` guard
+- call `print(...)` inside the main guard

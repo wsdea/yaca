@@ -204,6 +204,22 @@ class ToolCaller:
                     new_kwargs[name] = []
                     continue
 
+                stripped = str(raw).strip()
+
+                if stripped.startswith("<"):
+                    tags = re.findall(
+                        r"<\s*([A-Za-z_][\w-]*)\b[^>]*>(.*?)</\s*\1\s*>",
+                        stripped,
+                        flags=re.DOTALL,
+                    )
+                    if len(tags) >= 1:
+                        first_tag = tags[0][0]
+                        if all(t[0] == first_tag for t in tags):
+                            new_kwargs[name] = [
+                                html.unescape(x[1]).strip() for x in tags
+                            ]
+                            continue
+
                 # first trying to parse python strings
                 try:
                     new_kwargs[name] = json.loads(raw)
