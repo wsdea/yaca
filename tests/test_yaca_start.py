@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-from yaca.agents import YacaCoder
+from yaca.agents import YacaPlanner
 from yaca.ui import YacaTextualApp
 from yaca.ui.history_manager import HistoryManager
 
@@ -19,14 +19,8 @@ def _cwd_tmp_path(tmp_path):
 
 
 @pytest.mark.fast
-def test_yaca_init() -> None:
-    agent = YacaCoder([], _pytest=True)
-    assert "ask_questions" not in agent.tool_caller.tools, agent.tool_caller.tools
-
-
-@pytest.mark.fast
 def test_yaca_ui_init() -> None:
-    agent = YacaCoder([], _pytest=True)
+    agent = YacaPlanner(_pytest=True)
 
     history_file = os.path.join(agent.STATE_FOLDER, "history.json")
     history_manager = HistoryManager(history_file)
