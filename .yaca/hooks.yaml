@@ -1,7 +1,5 @@
 attempt_completion:
-  # - cmd: pytest -q -m "fast"
-  #   on_error: blocking
-  # - cmd: pytest tests/ui
-  #   on_error: blocking
+  - cmd: pytest -q -m "fast"
+    on_error: blocking
   - cmd: ruff format --config ruff.toml .
     on_error: ignore
