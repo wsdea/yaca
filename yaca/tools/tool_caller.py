@@ -45,12 +45,16 @@ class ToolCaller:
             descriptions.append(f"- {name}:\n    {doc.strip()}\n\n")
         return "\n".join(descriptions).strip()
 
-    def clean_xml(self, xml_text):
+    def clean_xml(self, xml_text: str):
         """Trying to parse when xml is not perfect"""
         xml_text = xml_text.strip().replace("\\\\", "\\")
         xml_text = html.unescape(xml_text)
         if not xml_text.endswith("</yaca_tool>"):
             xml_text += "</yaca_tool>"
+
+        if xml_text.startwith("<![CDATA["):
+            xml_text = xml_text.removeprefix("<![CDATA[")
+            xml_text = xml_text.removesuffix("]]>")
 
         return xml_text
 
