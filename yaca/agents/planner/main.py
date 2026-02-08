@@ -16,6 +16,7 @@ class YacaPlanner(BaseAgent):
             "search",
             "ask_questions",
             "start_coding_task",
+            "attempt_completion",
         )
 
     def reset(self) -> None:

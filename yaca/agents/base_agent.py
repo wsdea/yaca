@@ -16,7 +16,6 @@ from ..llm.messages import (
 )
 from ..logger import Logger
 from ..tools.ask_questions import ask_questions_tool
-from ..tools.attempt_completion import attempt_completion_tool
 from ..tools.cannot_do import cannot_do_tool
 from ..tools.code_diffs import apply_diff_tool
 from ..tools.create_file import create_file_tool
@@ -27,6 +26,7 @@ from ..tools.prompt_loader import PromptLoader
 from ..tools.remove_path import remove_path_tool
 from ..tools.reply_to_user import reply_to_user_tool
 from ..tools.search import search_tool
+from ..tools.task_completion import attempt_completion_tool, done_coding_tool
 from ..tools.todo import start_coding_task_tool, update_todo_tool
 from ..tools.tool_caller import ToolCaller, ToolParsingError
 
@@ -114,6 +114,7 @@ class BaseAgent:
                 "apply_diff": apply_diff_tool,
                 "create_file": create_file_tool,
                 "remove_path": remove_path_tool,
+                "done_coding": done_coding_tool,
                 "attempt_completion": attempt_completion_tool,
             },
             hook_caller=hook_caller,

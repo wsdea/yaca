@@ -19,8 +19,8 @@ class YacaCoder(BaseAgent):
             "apply_diff",
             "create_file",
             "remove_path",
-            "cannot_do",
-            "attempt_completion",
+            # "cannot_do",
+            "done_coding",
         )
 
     def reset(self) -> None:
