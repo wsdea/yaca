@@ -4,6 +4,15 @@ import pytest
 
 from yaca.tools.create_file import create_file_tool
 from yaca.tools.read_files import read_file
+from yaca.llm import SuccessToolResult
+
+
+class FakeAgent:
+    def __init__(self, open_files, CWD=None, logger=None, disable_run_command=False):
+        self.open_files = open_files
+        self.CWD = CWD
+        self.logger = logger
+        self.disable_run_command = disable_run_command
 
 
 @pytest.mark.parametrize(
@@ -13,11 +22,13 @@ from yaca.tools.read_files import read_file
     ],
 )
 def test_create_file(tmp_path, filename, expected):
-    # Load expected content from a file in this directory
-    target_path = os.path.join(tmp_path, filename)
+    os.chdir(str(tmp_path))
+    target_path = filename
 
-    result = create_file_tool(None, target_path, expected)
-    assert result["success"]
+    agent = FakeAgent(open_files=[target_path], CWD=str(tmp_path))
+
+    result = create_file_tool(agent, target_path, expected)
+    assert isinstance(result, SuccessToolResult)
 
     read_result = read_file(target_path)
     assert read_result == expected

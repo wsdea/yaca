@@ -2,6 +2,7 @@ import os
 import tempfile
 
 from yaca.tools.task_completion import validate_python_syntax
+from yaca.llm import FailedToolResult, SuccessToolResult
 
 
 def write_file(path: str, content: str):
@@ -19,8 +20,8 @@ def test_validate_python_syntax_all_valid():
         write_file(file2, "x = 42\n")
 
         result = validate_python_syntax([file1, file2])
-        assert result["success"] is True
-        assert "All Python files have valid syntax." in result["message"]
+        assert isinstance(result, SuccessToolResult)
+        assert "All Python files have valid syntax." in result.txt
 
 
 def test_validate_python_syntax_with_errors():
@@ -33,9 +34,7 @@ def test_validate_python_syntax_with_errors():
         write_file(invalid_file, "def broken()\n    pass\n")
 
         result = validate_python_syntax([valid_file, invalid_file, "other_file.pdf"])
-        assert result["success"] is False
-        # The message should contain the syntax error description
-        assert "Syntax error in" in result["message"]
-        assert "invalid.py" in result["message"]
-        # Ensure only one error message is reported (joined by '; ' if multiple)
-        assert result["message"].count("Syntax error in") == 1
+        assert isinstance(result, FailedToolResult)
+        assert "Syntax error in" in result.txt
+        assert "invalid.py" in result.txt
+        assert result.txt.count("Syntax error in") == 1
