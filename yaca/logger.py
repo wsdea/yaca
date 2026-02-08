@@ -24,8 +24,12 @@ class Logger:
         ts = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
         line = f"{ts} {level} {txt}\n"
         with self._lock:
-            with open(self.file_path, "a", encoding="utf-8") as f:
-                f.write(line)
+            try:
+                with open(self.file_path, "a", encoding="utf-8") as f:
+                    f.write(line)
+            except FileNotFoundError:
+                print(f"Warning, could not write logs to {self.file_path}")
+                pass
 
     def debug(self, msg: str, *args, **kwargs) -> None:
         self._write("DEBUG", self._format(msg, args))
