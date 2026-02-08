@@ -5,19 +5,11 @@ from ..base_agent import BaseAgent
 
 
 class YacaCoder(BaseAgent):
-    def __init__(
-        self,
-        open_files,
-        todo_list,
-        last_list_files="**",
-        *args,
-        **kwargs,
-    ) -> None:
+    def __init__(self, todo_list, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
+        self.reset()
         self.todo_list = todo_list
         assert len(self.todo_list) > 0
-        self.open_files = open_files
-        self.last_list_files = last_list_files
 
         self.set_tools(
             # "open_files",
@@ -27,8 +19,8 @@ class YacaCoder(BaseAgent):
             "apply_diff",
             "create_file",
             "remove_path",
-            "ask_questions",
-            "attempt_completion",
+            # "cannot_do",
+            "done_coding",
         )
 
     def reset(self) -> None:
@@ -48,14 +40,6 @@ class YacaCoder(BaseAgent):
 
     def build_mode_instructions(self) -> str:
         return "First, read the current open files in the editor and assess weither items in the todo list need to be updated. If not, then either do the next item in the todo, or attempt task completion. Answer me with one or multiple independant tool calls."
-
-    def build_project_structure(self) -> str:
-        """Return a human-readable project tree snippet for LLM context."""
-        structure = list_files_tool(
-            self, self.last_list_files, return_message=False
-        ).txt
-
-        return f"Here is a glimpse of my codebase:\n{structure}"
 
     def build_todo_context(self) -> str | None:
         """Render the current TODO list for injection into the LLM context."""
@@ -106,7 +90,6 @@ class YacaCoder(BaseAgent):
         self.conversation = (
             self.conversation[:last_user_input_id]
             + [
-                HelperMessage(self.build_project_structure()),
                 HelperMessage(self.build_open_files_context()),
                 HelperMessage(self.build_todo_context()),
                 self.conversation[last_user_input_id],

@@ -1,4 +1,4 @@
-import logging
+import json
 import os
 import sys
 import threading
@@ -14,9 +14,9 @@ from ..llm.messages import (
     Message,
     UserInput,
 )
-from ..logger import get_logger
+from ..logger import Logger
 from ..tools.ask_questions import ask_questions_tool
-from ..tools.attempt_completion import attempt_completion_tool
+from ..tools.cannot_do import cannot_do_tool
 from ..tools.code_diffs import apply_diff_tool
 from ..tools.create_file import create_file_tool
 from ..tools.hooks import HookCaller
@@ -24,7 +24,9 @@ from ..tools.list_files import list_files_tool
 from ..tools.open_files import open_files_tool
 from ..tools.prompt_loader import PromptLoader
 from ..tools.remove_path import remove_path_tool
+from ..tools.reply_to_user import reply_to_user_tool
 from ..tools.search import search_tool
+from ..tools.task_completion import attempt_completion_tool, done_coding_tool
 from ..tools.todo import start_coding_task_tool, update_todo_tool
 from ..tools.tool_caller import ToolCaller, ToolParsingError
 
@@ -34,19 +36,17 @@ class BaseAgent:
         self,
         _pytest: bool = False,
         llm_debug_folder: str | None = None,
-        llm_cache_folder: str | None = None,
+        llm_cache_file: str | None = None,
     ) -> None:
         """Initialize the agent and wire up tools, logging, and LLM client.
 
         Args:
             _pytest: Whether the agent is running under pytest (adjusts tool set).
             llm_debug_folder: Folder where raw LLM exchanges can be logged.
-            llm_cache_folder: Folder used to cache LLM responses.
+            llm_cache_file: File to cache LLM responses.
         """
         self.id = str(uuid.uuid4())
         self.name = self.__class__.__name__
-        self.logger = get_logger(__name__)
-        self.logger.debug("__init__ start")
         self._pytest = _pytest
         self.disable_run_command = False
         self.is_running = False
@@ -54,55 +54,75 @@ class BaseAgent:
         self.status_message = ""
         self.running_subagents = {}
 
-        self.DOT_YACA_FOLDER = os.path.join(os.getcwd(), ".yaca")
+        # paths
+        self.CWD = os.getcwd()
+        self.DOT_YACA_FOLDER = os.path.join(self.CWD, ".yaca")
         self.STATE_FOLDER = os.path.join(self.DOT_YACA_FOLDER, ".state")
         os.makedirs(self.STATE_FOLDER, exist_ok=True)
 
         self.RECYCLE_BIN = os.path.join(self.DOT_YACA_FOLDER, "recycle_bin")
         os.makedirs(self.RECYCLE_BIN, exist_ok=True)
-        self.logger.debug(f"{self.name} RECYCLE_BIN=%s", self.RECYCLE_BIN)
 
-        self.AGENT_STATE_FOLDER = os.path.join(self.STATE_FOLDER, self.name)
-        os.makedirs(self.AGENT_STATE_FOLDER, exist_ok=True)
         # dir of the subclass
-        self.AGENT_FOLDER = os.path.dirname(
+        self.AGENT_CODE_FOLDER = os.path.dirname(
             sys.modules[self.__class__.__module__].__file__
         )
-        os.makedirs(self.AGENT_FOLDER, exist_ok=True)
+        os.makedirs(self.AGENT_CODE_FOLDER, exist_ok=True)
 
-        self.DEBUG_FILE = os.path.join(self.AGENT_STATE_FOLDER, "debug.log")
+        agent_logs_root = os.path.join(self.STATE_FOLDER, "agent_logs")
+        os.makedirs(agent_logs_root, exist_ok=True)
+        self.AGENT_LOGS_FOLDER = os.path.join(agent_logs_root, f"{self.name}-{self.id}")
 
-        self._setup_debug_file_logging()
+        log_file_path = os.path.join(self.AGENT_LOGS_FOLDER, "debug.log")
+        self.logger = Logger(log_file_path)
 
+        llm_debug_folder = llm_debug_folder or os.path.join(
+            self.AGENT_LOGS_FOLDER, "llm_debug"
+        )
+        llm_cache_file = llm_cache_file or os.path.join(
+            self.STATE_FOLDER, "llm_cache.json"
+        )
         self.llm = LLMClient(
-            llm_debug_folder=llm_debug_folder
-            or os.path.join(self.AGENT_STATE_FOLDER, "llm_debug"),
-            llm_cache_dir=llm_cache_folder
-            or os.path.join(self.STATE_FOLDER, "llm_cache"),
+            debug_folder=llm_debug_folder,
+            cache_file=llm_cache_file,
         )
 
-        self.prompt_loader = PromptLoader(self.AGENT_FOLDER)
+        self.logger.debug("CWD=%s", self.CWD)
+        self.logger.debug("DOT_YACA_FOLDER=%s", self.DOT_YACA_FOLDER)
+        self.logger.debug("STATE_FOLDER=%s", self.STATE_FOLDER)
+        self.logger.debug("RECYCLE_BIN=%s", self.RECYCLE_BIN)
+        self.logger.debug("AGENT_STATE_FOLDER=%s", self.AGENT_LOGS_FOLDER)
+        self.logger.debug("AGENT_FOLDER=%s", self.AGENT_CODE_FOLDER)
+        self.logger.debug("llm_debug_folder=%s", llm_debug_folder)
+        self.logger.debug("llm_cache_file=%s", llm_cache_file)
 
-        hook_caller = HookCaller(os.path.join(self.DOT_YACA_FOLDER, "hooks.yaml"))
+        self.prompt_loader = PromptLoader(self.AGENT_CODE_FOLDER)
+
+        hooks_yaml_path = os.path.join(self.DOT_YACA_FOLDER, "hooks.yaml")
+        self.logger.debug("hooks_yaml_path=%s", hooks_yaml_path)
+        hook_caller = HookCaller(hooks_yaml_path)
         self.tool_caller = ToolCaller(
             {
                 "open_files": open_files_tool,
                 "list_files": list_files_tool,
                 "search": search_tool,
+                "reply_to_user": reply_to_user_tool,
+                "cannot_do": cannot_do_tool,
                 "ask_questions": ask_questions_tool,
                 "start_coding_task": start_coding_task_tool,
                 "update_todo": update_todo_tool,
                 "apply_diff": apply_diff_tool,
                 "create_file": create_file_tool,
                 "remove_path": remove_path_tool,
+                "done_coding": done_coding_tool,
                 "attempt_completion": attempt_completion_tool,
             },
             hook_caller=hook_caller,
         )
         # tools that can only be called when they are the first tool to call in the xml
         self.has_to_be_first = [
-            "update_todo",
-            "start_coding_task",
+            # "update_todo",
+            # "start_coding_task",
             "ask_questions",
         ]
         for x in self.has_to_be_first:
@@ -114,47 +134,6 @@ class BaseAgent:
 
     def log(self, msg: str, *args, **kwargs) -> None:
         self.logger.debug(msg, *args, **kwargs)
-
-    def _setup_debug_file_logging(self) -> None:
-        """Ensure a debug file handler is configured for the `yaca` logger."""
-        base_logger = logging.getLogger("yaca")
-        base_logger.setLevel(logging.DEBUG)
-
-        for h in list(base_logger.handlers):
-            if isinstance(h, logging.StreamHandler) and not isinstance(
-                h, logging.FileHandler
-            ):
-                base_logger.removeHandler(h)
-
-        existing_file_handlers = [
-            h
-            for h in base_logger.handlers
-            if isinstance(h, logging.FileHandler)
-            and getattr(h, "baseFilename", None) == os.path.abspath(self.DEBUG_FILE)
-        ]
-        if len(existing_file_handlers) == 1:
-            return
-
-        for h in list(base_logger.handlers):
-            if isinstance(h, logging.FileHandler) and getattr(h, "baseFilename", None):
-                if os.path.abspath(h.baseFilename) == os.path.abspath(self.DEBUG_FILE):
-                    base_logger.removeHandler(h)
-
-        # resetting the debug file
-        open(self.DEBUG_FILE, "w", encoding="utf-8").close()
-
-        file_handler = logging.FileHandler(self.DEBUG_FILE, encoding="utf-8")
-        file_handler.setLevel(logging.DEBUG)
-        file_handler.setFormatter(
-            logging.Formatter(
-                fmt="%(asctime)s %(levelname)s %(name)s:%(lineno)d - %(message)s"
-            )
-        )
-        base_logger.addHandler(file_handler)
-
-        self.logger.debug(
-            f"{self.name} debug file logging enabled path=%s", self.DEBUG_FILE
-        )
 
     def run_subagent(self, name: str, agent, run_kwargs) -> None:
         """Run a subagent and wait for the result"""
@@ -222,7 +201,7 @@ class BaseAgent:
         self.status_message = "Waiting for user message"
 
     # Context management
-    def _trim_attempted_tool_calls(self) -> None:
+    def _trim_attempted_tool_calls(self, n_lines=6) -> None:
         """Trim AttemptedToolCall messages to keep conversation compact."""
         attempted_tool_calls = [
             x for x in self.conversation if isinstance(x, AttemptedToolCall)
@@ -237,14 +216,13 @@ class BaseAgent:
                 continue
 
             lines = msg.txt.splitlines()
-            if len(lines) <= 6:
+            if len(lines) <= n_lines * 2:
                 continue
 
-            msg.txt = "\n".join(lines[:3] + ["[..]"] + lines[-3:])
+            msg.txt = "\n".join(lines[:n_lines] + ["[...]"] + lines[-n_lines:])
 
     def prepare_conversation(self) -> list[Message]:
         """Build the LLM-ready conversation, injecting helper context messages."""
-        self.logger.debug("conversation_for_llm start")
         # cleaning helper messages
         # They may be added back by the subclass
         self.conversation = [
@@ -254,8 +232,6 @@ class BaseAgent:
 
     def set_tools(self, *tools: str) -> None:
         """Restrict which tools the LLM is allowed to call."""
-        if self._pytest:
-            tools = [x for x in tools if x != "ask_questions"]
         self.tool_caller.set_tools(tools)
 
     # Main loop
@@ -296,17 +272,13 @@ class BaseAgent:
 
             processed_tool_txt = ""
             processed_messages = []
-            already_called = set()
+
             for i, (tool_name, kwargs, tool_txt) in enumerate(tool_calls):
                 if self._cancel_event.is_set():
                     self.status_message = "Cancelled"
                     self.logger.debug(f"{self.name} processing cancelled")
                     self.last_result_txt = "Cancelled by user"
                     return AssistantResponse("Cancelled by user")
-
-                if tool_name in already_called:
-                    self.logger.debug(f"Skipping already called tool {tool_name}")
-                    continue
 
                 if i > 0 and tool_name in self.has_to_be_first:
                     self.logger.debug(
@@ -330,7 +302,7 @@ class BaseAgent:
                     )
                     raise
 
-                already_called.add(tool_name)
+                self.logger.debug(f"Tool {tool_name} response : {tool_response}")
                 tool_response.tool_name = tool_name
                 processed_tool_txt += "\n" + tool_txt
                 processed_messages.append(tool_response)

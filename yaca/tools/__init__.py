@@ -1,4 +1,4 @@
-from .attempt_completion import attempt_completion_tool
+from .task_completion import done_coding_tool, attempt_completion_tool
 from .create_file import create_file_tool
 from .create_folder import create_folder_tool
 from .list_files import list_files_tool

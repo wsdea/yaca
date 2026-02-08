@@ -26,6 +26,16 @@ Screen {
   color: #93c5fd;
 }
 
+#warnings_banner {
+  display: none;
+  height: auto;
+  padding: 0 1;
+  margin: 0 0 1 0;
+  background: #7f1d1d;
+  color: #fff7ed;
+  border: heavy #ef4444;
+}
+
 #open_files {
   height: auto;
   padding: 0;

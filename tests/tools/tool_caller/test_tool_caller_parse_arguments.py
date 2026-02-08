@@ -55,3 +55,54 @@ def test_parse_arguments_invalid_bool():
     with pytest.raises(ToolParsingError) as exc:
         caller.parse_arguments(dummy_func, **raw_kwargs)
     assert "Cannot parse bool for argument b" in str(exc.value)
+
+
+def test_parse_arguments_list_from_item_tags():
+    caller = ToolCaller()
+    raw_kwargs = {
+        "a": "42",
+        "b": "true",
+        "c": """
+            <item> x </item>
+            <item>
+                y
+            </item>
+            <item>z</item>
+        """,
+    }
+    parsed = caller.parse_arguments(dummy_func, **raw_kwargs)
+    assert parsed["c"] == ["x", "y", "z"]
+
+
+def test_parse_arguments_list_from_repeated_non_item_tags():
+    caller = ToolCaller()
+    raw_kwargs = {
+        "a": "42",
+        "b": "true",
+        "c": """
+            <foo> x </foo>
+            <foo>
+                y
+            </foo>
+            <foo>z</foo>
+        """,
+    }
+    parsed = caller.parse_arguments(dummy_func, **raw_kwargs)
+    assert parsed["c"] == ["x", "y", "z"]
+
+
+def test_parse_arguments_list_single_xml_tag_is_not_list():
+    caller = ToolCaller()
+    raw_kwargs = {"a": "42", "b": "true", "c": "<foo>bar</foo>"}
+    parsed = caller.parse_arguments(dummy_func, **raw_kwargs)
+    assert parsed["c"] == ["<foo>bar</foo>"]
+
+
+def test_parse_arguments_list_item_tags_does_not_affect_str():
+    def func_with_str(agent: str, s: str):
+        return agent, s
+
+    caller = ToolCaller()
+    raw_kwargs = {"agent": "agent", "s": "<item>a</item><item>b</item>"}
+    parsed = caller.parse_arguments(func_with_str, **raw_kwargs)
+    assert parsed["s"] == "<item>a</item><item>b</item>"

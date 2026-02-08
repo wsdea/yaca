@@ -4,7 +4,12 @@ from ..llm import FailedToolResult, SuccessToolResult, find_json
 from .safety import is_path_allowed
 
 
-def open_files_tool(agent, files: list[str], overwrite: bool = False):
+def open_files_tool(
+    agent,
+    files: list[str],
+    overwrite: bool = False,
+    discard_non_existing=True,
+):
     # Do not change the docstring as it's imported for tool calling, do not remove this comment
     """Tool to update currently open files in the editor. Please list **all** the files you need to open. Files outside of this list will be **closed**
 
@@ -17,23 +22,27 @@ def open_files_tool(agent, files: list[str], overwrite: bool = False):
     new_files = []
     errors = []
     for x in files:
-        if not (
-            os.path.isfile(x)
-            and os.path.exists(x)
-            and x not in new_files
-            and os.path.abspath(x) not in new_files
-        ):
+        abs_x = os.path.abspath(x)
+
+        if not is_path_allowed(abs_x):
+            errors.append(f"{abs_x!r} is not allowed")
             continue
 
-        if is_path_allowed(x):
-            new_files.append(x)
-        else:
-            errors.append(f"{x!r} doesn't exist or you are not allowed to see it")
+        if not os.path.exists(abs_x):
+            if discard_non_existing:
+                continue
+            new_files.append(abs_x)
+            continue
+
+        if os.path.isfile(abs_x):
+            new_files.append(abs_x)
+
+    new_files = set([os.path.relpath(x, agent.CWD) for x in new_files])
 
     if overwrite:
-        agent.open_files = sorted(set(new_files))
+        agent.open_files = sorted(new_files)
     else:
-        agent.open_files = sorted(set(agent.open_files) | set(new_files))
+        agent.open_files = sorted(set(agent.open_files) | new_files)
 
     if errors:
         return FailedToolResult("\n".join(errors))

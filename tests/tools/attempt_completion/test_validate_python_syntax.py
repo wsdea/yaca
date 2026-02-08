@@ -1,7 +1,7 @@
 import os
 import tempfile
 
-from yaca.tools.attempt_completion import validate_python_syntax
+from yaca.tools.task_completion import validate_python_syntax
 
 
 def write_file(path: str, content: str):

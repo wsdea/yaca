@@ -1,1 +1,1 @@
-Delete the file `sample.txt` from the src folder.
+Delete the file `sample.txt`

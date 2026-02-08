@@ -88,7 +88,7 @@ def test_tool_parsing_success(xml, expected):
 @pytest.mark.parametrize(
     "xml",
     [
-        '<yaca_tool name="evil_tool" />',
+        '<yaca_tool name="read_file" />',
         "<nothing_here />",
         "",
     ],

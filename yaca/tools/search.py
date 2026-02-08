@@ -1,13 +1,12 @@
 import os
 import re
 
+from ..config import get_cfg_value
 from ..llm import FailedToolResult, SuccessToolResult, find_json
 from .list_files import list_files
 from .open_files import open_files_tool
 from .prompt_loader import PromptLoader
 from .read_files import read_file
-
-MAX_RESULTS = 30
 
 
 prompt_loader = PromptLoader(prompt_folder=os.path.dirname(__file__))
@@ -130,9 +129,13 @@ def search_raw(
                 f"<result file={file_path}>\n{start_string}{context}{end_string}\n</result>\n"
             )
 
-    if len(snippets) > MAX_RESULTS:
-        message = f"Warning, search truncated to {MAX_RESULTS} results. Improve your query next time.\n"
-        snippets = snippets[:MAX_RESULTS]
+    max_results = get_cfg_value("tools.search.max_results")
+    if not isinstance(max_results, int) or max_results <= 0:
+        max_results = 30
+
+    if len(snippets) > max_results:
+        message = f"Warning, search truncated to {max_results} results. Improve your query next time.\n"
+        snippets = snippets[:max_results]
     else:
         message = ""
 

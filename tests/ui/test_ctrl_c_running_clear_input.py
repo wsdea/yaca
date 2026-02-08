@@ -13,9 +13,11 @@ class _DummyAgent:
         self.mode = ""
         self.status_message = ""
         self.open_files = []
+        self.running_subagents = {}
         self.conversation = []
         self.todo_list = []
         self.is_running = True
+        self.last_result_txt = ""
         self.cancel_calls = 0
         self.reset_calls = 0
 

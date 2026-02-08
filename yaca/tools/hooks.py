@@ -62,6 +62,7 @@ class HookCaller:
 
     def run_after(self, agent, tool_name: str) -> FailedToolResult | None:
         """Executes the hooks"""
+        # hooks are disabled during tests
         if agent._pytest:
             return
 

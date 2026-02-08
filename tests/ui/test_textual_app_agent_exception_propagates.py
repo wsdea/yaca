@@ -1,4 +1,5 @@
 import asyncio
+import os
 
 import pytest
 
@@ -14,6 +15,7 @@ class _FailingAgent:
         self.conversation = []
         self.status_message = ""
         self.is_running = False
+        self.last_result_txt = ""
 
     def request_cancel(self) -> None:
         return
@@ -28,7 +30,8 @@ class _FailingAgent:
 @pytest.mark.asyncio
 async def test_textual_app_agent_exception_propagates(tmp_path) -> None:
     agent = _FailingAgent()
-    history = HistoryManager(tmp_path)
+    history_path = os.path.join(tmp_path, "history.json")
+    history = HistoryManager(history_path)
     app = YacaTextualApp(agent, history)
 
     async with app.run_test() as pilot:

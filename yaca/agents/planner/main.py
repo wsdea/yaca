@@ -16,6 +16,7 @@ class YacaPlanner(BaseAgent):
             "search",
             "ask_questions",
             "start_coding_task",
+            "attempt_completion",
         )
 
     def reset(self) -> None:
@@ -33,7 +34,7 @@ class YacaPlanner(BaseAgent):
         )
 
     def build_mode_instructions(self) -> str:
-        return "Think about the best tool to call at this time and I will give you the result. If asked about a coding task, your final tool will be a creating the todo for that task. Answer me with one or multiple independant tool calls."
+        return "Think about the best tools to call at this time and I will give you the results. If asked about a coding task, split it in multiple independant coding tasks if possible for better efficiency. Answer me with one or multiple independant tool calls."
 
     def build_project_structure(self) -> str:
         """Return a human-readable project tree snippet for LLM context."""

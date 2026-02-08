@@ -25,9 +25,9 @@ def validate_python_syntax(files):
     return SuccessToolResult("All Python files have valid syntax.")
 
 
-def attempt_completion_tool(agent, recap: str):
+def done_coding_tool(agent, recap: str):
     # Do not change the docstring as it's imported for tool calling, do not remove this comment
-    """Function to call when you consider the user's request to be fully done. This function will run some checks, lint, run tests and return a message about the success of this.
+    """Function to call when you are done coding.
 
     Args:
         recap (str): Quick recap of what you have done, including stuff that was in the todo list. Do not mention the todo though. Mention edited or created files. No code block. Use markdown and bullet points.
@@ -47,5 +47,16 @@ def attempt_completion_tool(agent, recap: str):
     for x in agent.todo_list:
         if x["status"] != "done":
             return FailedToolResult("Finish the tasks of the todo list.")
+
+    return AssistantResponse(recap)
+
+
+def attempt_completion_tool(agent, recap: str):
+    # Do not change the docstring as it's imported for tool calling, do not remove this comment
+    """Function to call when you consider the user's request to be fully done. This function will run some checks, lint, run tests and return a message about the success of this.
+
+    Args:
+        recap (str): Quick recap of what you have done so far for the user since the start of the conversation. Do not mention the todos though. Mention edited or created files. No code block. Use markdown and bullet points. At the end of the message, ask **one** follow-up question suggesting what to do next.
+    """
 
     return AssistantResponse(recap)

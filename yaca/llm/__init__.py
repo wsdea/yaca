@@ -1,4 +1,3 @@
-from .llm_conf import LLMModel
 from .messages import (
     AttemptedToolCall,
     FailedToolResult,
@@ -11,5 +10,5 @@ from .messages import (
     DebugMessage,
     _ToolResult,
 )
-from .openai_client import LLMClient, LLMError
+from .litellm_client import LLMClient, LLMError
 from .output_parser import find_json

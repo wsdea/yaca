@@ -13,7 +13,13 @@ FAST_PROJECTS = [
     "create_file",
     "delete_file",
     "pathlib_to_ospath",
+    "hello_world_human",
 ]
+
+USER_CONFIG_YAML = """llm:
+  model: "openai/gpt-5.2"
+  api_key_env: "OPENAI_API_KEY"
+"""
 
 
 def discover_projects() -> list[str]:
@@ -27,10 +33,10 @@ def discover_projects() -> list[str]:
 def run_task(working_dir, task):
     original_wd = os.getcwd()
     # we keep the original cache for faster tests
-    llm_cache_folder = os.path.join(original_wd, ".yaca", ".state", "llm_cache")
+    llm_cache_file = os.path.join(original_wd, ".yaca", ".state", "llm_cache.json")
     try:
         os.chdir(working_dir)
-        CHATBOT = YacaPlanner(_pytest=True, llm_cache_folder=llm_cache_folder)
+        CHATBOT = YacaPlanner(_pytest=True, llm_cache_file=llm_cache_file)
         CHATBOT(task)
     finally:
         os.chdir(original_wd)
@@ -65,7 +71,7 @@ def run_verification(agent, project_dir: str, mirror_src: str):
 @pytest.mark.parametrize(
     "project_name",
     [
-        pytest.param(name, marks=[pytest.mark.fast, pytest.mark.projects])
+        pytest.param(name, marks=[pytest.mark.fast])
         if name in FAST_PROJECTS
         else pytest.param(name)
         for name in discover_projects()
@@ -85,6 +91,11 @@ def test_project(project_name: str) -> None:
     shutil.rmtree(mirror, ignore_errors=True)
     src_mirror = os.path.join(mirror, "src")
     shutil.copytree(src_dir, src_mirror)
+
+    yaca_dir = os.path.join(src_mirror, ".yaca")
+    os.makedirs(yaca_dir, exist_ok=True)
+    with open(os.path.join(yaca_dir, "user_config.yaml"), "w", encoding="utf-8") as f:
+        f.write(USER_CONFIG_YAML)
 
     # running task
     with open(os.path.join(project_dir, "task.txt")) as f:

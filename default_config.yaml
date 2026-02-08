@@ -1,0 +1,51 @@
+llm:
+  model: null
+  timeout_seconds: 120
+  api_key_env: "OPENAI_API_KEY"
+  base_url: null
+  max_retries: 5
+  chat_retry:
+    max_retries: 3
+
+tools:
+  list_files:
+    max_depth: 3
+  read_files:
+    max_files_to_read: 5
+  search:
+    max_results: 30
+
+safety:
+  ignore_patterns:
+    - ".git"
+    - "*.pyc"
+    - ".*cache"
+    - "__pycache__"
+    - "*.egg*"
+    - ".coverage"
+    - ".venv*"
+    - ".yaca/.state"
+  unsafe_keywords:
+    - "eval"
+    - "exec"
+    - "compile"
+    - "input"
+    - "__import__"
+    - "globals"
+    - "locals"
+    - "sys"
+    - "subprocess"
+    - "shutil"
+    - "socket"
+    - "ctypes"
+    - "pickle"
+    - "marshal"
+    - "multiprocessing"
+  unsafe_attr_calls:
+    - ["os", "system"]
+    - ["os", "remove"]
+    - ["os", "popen"]
+    - ["subprocess", "Popen"]
+    - ["subprocess", "call"]
+    - ["subprocess", "check_output"]
+    - ["subprocess", "run"]

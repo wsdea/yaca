@@ -1,6 +1,7 @@
 import glob
 import os
 
+from ..config import get_cfg_value
 from ..llm import FailedToolResult, SuccessToolResult
 from .safety import (
     DOTSEP,
@@ -75,7 +76,7 @@ def list_files_tool(agent, glob_pattern: str, return_message: bool = True):
     if not glob_pattern:
         return FailedToolResult("glob_pattern is empty")
 
-    max_depth = 3
+    max_depth = get_cfg_value("tools.list_files.max_depth", int)
     if max_depth <= 0:
         return FailedToolResult("Incorrect max_depth")
 
