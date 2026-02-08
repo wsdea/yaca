@@ -1,4 +1,3 @@
-import glob
 import hashlib
 import json
 import os
@@ -26,7 +25,17 @@ class LLMClient:
         cache_file=None,
     ):
         if model_name is None:
-            model_name = get_cfg_value("llm.model", str)
+            model_name = get_cfg_value("llm.model")
+
+        if model_name is None:
+            raise LLMError(
+                'llm.model is not set. Set it in .yaca/user_config.yaml, for example:\n\nllm:\n  model: "openai/gpt-5.2"\n'
+            )
+
+        if not isinstance(model_name, str):
+            raise LLMError(
+                f"llm.model must be a string, but got {type(model_name)} instead"
+            )
 
         self.model_name = model_name
 

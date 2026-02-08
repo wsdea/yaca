@@ -14,7 +14,9 @@ def _lock_path_for(path: str) -> str:
     return path + ".lock"
 
 
-def _acquire_lock(lock_path: str, timeout_seconds: int = 10, retry_sleep_seconds: float = 0.05):
+def _acquire_lock(
+    lock_path: str, timeout_seconds: int = 10, retry_sleep_seconds: float = 0.05
+):
     start = time.time()
     while True:
         try:

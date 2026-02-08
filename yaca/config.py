@@ -4,6 +4,7 @@ import yaml
 
 _CACHED_CONFIG = None
 _CACHED_CONFIG_WARNINGS = []
+_CONFIG_WARNINGS_SET = set()
 
 
 def _loading_yaml(path):
@@ -45,8 +46,19 @@ def _ensure_yaca_dir_in_cwd() -> str:
 def _ensure_user_config_exists(yaca_dir: str) -> str:
     user_config_path = os.path.join(yaca_dir, "user_config.yaml")
     if not os.path.exists(user_config_path):
-        with open(user_config_path, "w") as f:
-            f.write("")
+        template = """# YACA user config
+# Copy/paste and edit values you want to override from default_config.yaml.
+# Lines starting with '#' are comments.
+
+llm:
+  model: null
+  api_key_env: "OPENAI_API_KEY"
+"""
+        with open(user_config_path, "w", encoding="utf-8") as f:
+            f.write(template)
+
+        print(f"Please set-up your config in {user_config_path} and restart yaca")
+        exit(0)
     return user_config_path
 
 
@@ -63,7 +75,7 @@ def _load_user_config(user_config_path: str) -> dict:
     try:
         parsed = yaml.safe_load(raw)
     except yaml.YAMLError:
-        _CACHED_CONFIG_WARNINGS.append(
+        _add_config_warning(
             f"Config warning: Could not parse YAML in {user_config_path}. Fix the YAML syntax (indentation/quotes) or clear the file."
         )
         return {}
@@ -72,7 +84,7 @@ def _load_user_config(user_config_path: str) -> dict:
         return {}
 
     if not isinstance(parsed, dict):
-        _CACHED_CONFIG_WARNINGS.append(
+        _add_config_warning(
             f"Config warning: YAML root in {user_config_path} must be a mapping (key/value pairs). Wrap values under keys or clear the file."
         )
         return {}
@@ -98,6 +110,13 @@ def _find_unknown_config_keys(
     return unknown
 
 
+def _add_config_warning(message: str) -> None:
+    if message in _CONFIG_WARNINGS_SET:
+        return
+    _CONFIG_WARNINGS_SET.add(message)
+    _CACHED_CONFIG_WARNINGS.append(message)
+
+
 def loading_config() -> dict:
     default_config_path = _find_project_root_default_config_path()
     default_cfg = _loading_yaml(default_config_path)
@@ -109,11 +128,24 @@ def loading_config() -> dict:
     if isinstance(default_cfg, dict) and isinstance(user_cfg, dict):
         unknown_paths = _find_unknown_config_keys(default_cfg, user_cfg)
         for path in unknown_paths:
-            _CACHED_CONFIG_WARNINGS.append(
+            _add_config_warning(
                 f"Config warning: Unknown config key '{path}' in {user_config_path}."
             )
 
-    return _merging_dicts(default_cfg, user_cfg)
+    merged = _merging_dicts(default_cfg, user_cfg)
+
+    llm = merged["llm"]
+    model = llm["model"]
+    if model is None:
+        _add_config_warning(
+            'Config warning: llm.model is not set. Set it in .yaca/user_config.yaml, for example:\n\nllm:\n  model: "openai/gpt-5.2"\n'
+        )
+    elif not isinstance(model, str):
+        _add_config_warning(
+            f"Config warning: llm.model must be a string or null, but got {type(model)}."
+        )
+
+    return merged
 
 
 def get_cfg() -> dict:

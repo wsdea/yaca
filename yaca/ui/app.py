@@ -9,7 +9,7 @@ from textual.reactive import reactive
 from textual.widgets import Collapsible, Input, Markdown, Static
 
 from ..agents import YacaPlanner
-from ..config import get_config_warnings
+from ..config import get_cfg_value, get_config_warnings
 from ..tools.safety import is_unsafe_tripped
 from .history_manager import HistoryManager
 
@@ -44,6 +44,9 @@ class YacaTextualApp(App):
         self.history = history
 
         self._normal_placeholder = "What do you want to do today ?"
+        self._model_missing_placeholder = (
+            'Set llm.model in .yaca/user_config.yaml (llm:\n  model: "openai/gpt-5.2")'
+        )
         self._working_placeholder_prefix = "Yaca working"
         self._working_placeholder_frames = ["", ".", "..", "..."]
         self._working_placeholder_frame_index = 0
@@ -203,12 +206,21 @@ class YacaTextualApp(App):
 
     def _refresh_chat_input_state(self) -> None:
         chat_input = self.query_one("#chat_input", Input)
-        should_disable = bool(self.agent.is_running)
 
-        if should_disable:
+        model = get_cfg_value("llm.model")
+        model_missing = model is None
+
+        should_disable = bool(self.agent.is_running) or model_missing
+
+        if self.agent.is_running:
             self._start_working_placeholder_animation()
         else:
             self._stop_working_placeholder_animation()
+
+        if model_missing and not self.agent.is_running:
+            chat_input.placeholder = self._model_missing_placeholder
+        elif not self.agent.is_running:
+            chat_input.placeholder = self._normal_placeholder
 
         if chat_input.disabled == should_disable:
             return

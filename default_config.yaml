@@ -1,7 +1,7 @@
 llm:
-  model: "gpt-5.2-2025-12-11"
+  model: null
   timeout_seconds: 120
-  api_key_env: "LITELLM_API_KEY"
+  api_key_env: "OPENAI_API_KEY"
   base_url: null
   max_retries: 5
   chat_retry:
