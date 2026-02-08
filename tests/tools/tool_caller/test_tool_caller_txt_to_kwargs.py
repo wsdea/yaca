@@ -11,10 +11,10 @@ def dummy_tool(agent):
 TOOLS = {
     "read_file": dummy_tool,
     "apply_diff": dummy_tool,
-    "update_todo": dummy_tool,
+    "noop": dummy_tool,
 }
 tc = ToolCaller(TOOLS)
-tc.set_tools(TOOLS)
+tc.set_tools(list(TOOLS.keys()))
 
 
 @pytest.mark.parametrize(
@@ -29,8 +29,8 @@ tc.set_tools(TOOLS)
             [("read_file", {"path": "README.md"})],
         ),
         (
-            '<yaca_tool name="update_todo" />',
-            [("update_todo", {})],
+            '<yaca_tool name="noop" />',
+            [("noop", {})],
         ),
         (
             """
@@ -42,12 +42,12 @@ tc.set_tools(TOOLS)
                 <diff>PATCH</diff>
             </yaca_tool>
 
-            <yaca_tool name="update_todo" />
+            <yaca_tool name="noop" />
             """,
             [
                 ("read_file", {"path": "a.txt"}),
                 ("apply_diff", {"diff": "PATCH"}),
-                ("update_todo", {}),
+                ("noop", {}),
             ],
         ),
         (

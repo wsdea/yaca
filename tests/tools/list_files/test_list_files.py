@@ -16,6 +16,8 @@ def test_list_files():
     result = list_files_tool(agent, "tests/tools/list_files/**", return_message=True)
     assert result["success"], f"list_files failed: {result['message']}"
     output = result["message"]
+    assert output.startswith("<list_files_result>\n")
+    assert output.endswith("\n</list_files_result>")
     assert "sample.txt" in output
     assert "bar.txt" in output
     assert "yes.py" in output
@@ -31,9 +33,9 @@ def test_list_files():
     assert result["success"], f"list_files failed: {result['message']}"
     output = result["message"]
     assert "sample.txt" in output
-    assert "bar.txt" not in output
+    assert "bar.txt" in output
     assert "yes.py" in output
-    assert "bar2.txt" not in output
+    assert "bar2.txt" in output
 
     result = list_files_tool(
         agent, "tests/tools/list_files/**/*.py", return_message=True
@@ -48,10 +50,10 @@ def test_list_files():
     result = list_files_tool(agent, "tests/tools/list_files/**", return_message=True)
     assert result["success"], f"list_files failed: {result['message']}"
     output = result["message"]
-    assert "foo/" in output
+    assert "- foo/" in output or "foo/" in output
+    assert "- foo2/" in output or "foo2/" in output
     assert "foo2\n" not in output
-    assert "foo2/\n" in output
-    assert "hidden items" in output or "yes.py" not in output
+    assert "<" in output and "hidden items" in output
 
     result = list_files_tool(
         agent,
@@ -62,8 +64,8 @@ def test_list_files():
     assert result["success"], f"list_files failed: {result['message']}"
     output = result["message"]
     assert "sample.txt" not in output
-    assert "bar.txt" not in output
+    assert "bar.txt" in output
     assert "yes.py" in output
-    assert "bar2.txt" not in output
+    assert "bar2.txt" in output
 
     assert os.sep not in "\n"

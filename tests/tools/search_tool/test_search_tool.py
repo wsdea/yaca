@@ -1,7 +1,7 @@
 import os
 
 from yaca.tools.search import search_raw, search_tool
-from yaca.llm import FailedToolResult
+from yaca.llm import FailedToolResult, SuccessToolResult
 
 
 class FakeAgent:
@@ -31,11 +31,16 @@ class _StubLogger:
 
 
 class _StubLLM:
-    def __init__(self, text):
-        self._text = text
+    def __init__(self, relevant_files):
+        self._relevant_files = relevant_files
 
-    def complete(self, prompt):
-        return self._text
+    def __call__(self, prompt):
+        return (
+            "{"
+            + '"relevant_files": '
+            + str(self._relevant_files).replace("'", '"')
+            + "}"
+        )
 
 
 def test_successful_search_raw():
@@ -56,13 +61,13 @@ def test_empty_keywords_raw():
     assert "pattern needs to be a non empty string" in result.txt
 
 
-def test_max_results_truncation_raw():
+def test_max_results_truncation_raw(yaca_test_config):
     many_file = os.path.join(SAMPLE_FILES_DIR, "many_matches.txt")
     result = search_raw(many_file, "alpha", context_lines=0)
     assert result["success"] is True, result["message"]
     message = result["message"]
     assert "truncated" in message
-    assert message.count("<result") == 30
+    assert message.count("<result") == yaca_test_config["tools"]["search"]["max_results"]
 
 
 def test_search_tool_integration():
@@ -70,13 +75,23 @@ def test_search_tool_integration():
 
     agent = FakeAgent(open_files=[])
     agent.logger = _StubLogger()
-    agent.llm = _StubLLM("Reason: looking for alpha and beta")
+    agent.llm = _StubLLM(
+        [
+            os.path.join(SAMPLE_FILES_DIR, "a.txt"),
+            os.path.join(SAMPLE_FILES_DIR, "b.txt"),
+        ]
+    )
 
     result = search_tool(
         agent, glob_pattern=pattern, pattern="alpha|beta", reason="find both"
     )
+    assert isinstance(result, SuccessToolResult), result
     assert result["success"] is True, result["message"]
     message = result["message"]
     assert "<search_results>" in message
     assert "alpha" in message
     assert "beta" in message
+    assert agent.open_files == [
+        os.path.join(SAMPLE_FILES_DIR, "a.txt"),
+        os.path.join(SAMPLE_FILES_DIR, "b.txt"),
+    ]
