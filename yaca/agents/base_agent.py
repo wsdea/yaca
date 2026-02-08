@@ -1,4 +1,3 @@
-import json
 import os
 import sys
 import threading
@@ -190,7 +189,7 @@ class BaseAgent:
     def reset(self) -> None:
         """Reset agent state (conversation, context) to defaults."""
         self.clear_cancel()
-        self.status_message = "Waiting for user message"
+        self.status_message = ""
         self.reset_conversation()
 
     def reset_conversation(self) -> None:
@@ -198,7 +197,7 @@ class BaseAgent:
         self.logger.debug("reset_conversation")
         self.conversation = []
         self.last_result_txt = ""
-        self.status_message = "Waiting for user message"
+        self.status_message = ""
 
     # Context management
     def _trim_attempted_tool_calls(self, n_lines=6) -> None:
