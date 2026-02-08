@@ -16,6 +16,11 @@ FAST_PROJECTS = [
     # "hello_world_human",
 ]
 
+USER_CONFIG_YAML = """llm:
+  model: "openai/gpt-5.2"
+  api_key_env: "OPENAI_API_KEY"
+"""
+
 
 def discover_projects() -> list[str]:
     """
@@ -86,6 +91,11 @@ def test_project(project_name: str) -> None:
     shutil.rmtree(mirror, ignore_errors=True)
     src_mirror = os.path.join(mirror, "src")
     shutil.copytree(src_dir, src_mirror)
+
+    yaca_dir = os.path.join(src_mirror, ".yaca")
+    os.makedirs(yaca_dir, exist_ok=True)
+    with open(os.path.join(yaca_dir, "user_config.yaml"), "w", encoding="utf-8") as f:
+        f.write(USER_CONFIG_YAML)
 
     # running task
     with open(os.path.join(project_dir, "task.txt")) as f:
