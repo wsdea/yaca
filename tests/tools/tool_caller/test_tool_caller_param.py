@@ -46,7 +46,7 @@ class FakeAgent:
         (
             "read_files",
             {
-                "files": '["yaca/tools/read_file.py"]',
+                "files": '["yaca/tools/read_files.py"]',
             },
         ),
         (

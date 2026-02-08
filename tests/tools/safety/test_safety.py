@@ -17,9 +17,12 @@ test_cases = [
     # Unsafe builtins
     ("eval('2 + 2')", True),
     ("exec('print(1)')", True),
+    ("compile('2+2', 'x', 'eval')", True),
+    ("__import__('os')", True),
     # Unsafe module imports and calls
     ("import os\nos.system('ls')", True),
     ("from subprocess import Popen\nPopen(['ls'])", True),
+    ("import subprocess\nsubprocess.run(['ls'])", True),
     ("import pickle\npickle.loads(data)", True),
     ("import socket\ns = socket.socket()", True),
 ]

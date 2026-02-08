@@ -38,8 +38,22 @@ def yaca_test_cfg(monkeypatch) -> None:
         return {
             "safety": {
                 "ignore_patterns": [],
-                "unsafe_keywords": [],
-                "unsafe_attr_calls": [],
+                "unsafe_keywords": [
+                    "eval",
+                    "exec",
+                    "compile",
+                    "__import__",
+                ],
+                "unsafe_attr_calls": [
+                    "os.remove",
+                    "os.rmdir",
+                    "os.unlink",
+                    "os.system",
+                    "subprocess.Popen",
+                    "subprocess.run",
+                    "pickle.loads",
+                    "socket.socket",
+                ],
             },
             "tools": {
                 "list_files": {"max_depth": 25},
@@ -50,3 +64,8 @@ def yaca_test_cfg(monkeypatch) -> None:
 
     monkeypatch.setattr(yaca.config, "get_cfg", _get_cfg)
     yaca.tools.safety._UNSAFE_TRIPPED = False
+
+
+@pytest.fixture
+def yaca_test_config(yaca_test_cfg) -> None:
+    return None

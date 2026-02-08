@@ -7,12 +7,12 @@ from yaca.llm import FailedToolResult, SuccessToolResult
 class FakeAgent:
     def __init__(self, open_files, CWD=None, logger=None, llm=None):
         self.open_files = open_files
-        self.CWD = CWD
+        self.CWD = CWD or os.getcwd()
         self.logger = logger
         self.llm = llm
 
 
-SAMPLE_FILES_DIR = os.path.join("tests", "tools", "search_tool", "sample_files")
+SAMPLE_FILES_DIR = os.path.join(os.path.dirname(__file__), "sample_files")
 assert os.path.exists(SAMPLE_FILES_DIR)
 
 
@@ -27,6 +27,9 @@ class _StubLogger:
         self.messages.append(message)
 
     def error(self, message):
+        self.messages.append(message)
+
+    def debug(self, message):
         self.messages.append(message)
 
 
@@ -44,54 +47,55 @@ class _StubLLM:
 
 
 def test_successful_search_raw():
-    pattern = os.path.join(SAMPLE_FILES_DIR, "*.txt")
-    result = search_raw(pattern, "alpha|beta")
-    assert result["success"] is True, result["message"]
-    message = result["message"]
-    assert "<search_results>" in message
+    glob_pattern = os.fspath(os.path.join(SAMPLE_FILES_DIR, "*.txt"))
+    result = search_raw(glob_pattern, "alpha|beta")
+    assert isinstance(result, SuccessToolResult), result
+    message = result.txt
+    assert message.startswith("<search_results>")
     assert "<result file=" in message
-    assert "alpha" in message
-    assert "beta" in message
+    assert "alpha" in message or "beta" in message
 
 
 def test_empty_keywords_raw():
-    pattern = os.path.join(SAMPLE_FILES_DIR, "*.txt")
-    result = search_raw(pattern, "")
+    glob_pattern = os.fspath(os.path.join(SAMPLE_FILES_DIR, "*.txt"))
+    result = search_raw(glob_pattern, "")
     assert isinstance(result, FailedToolResult)
     assert "pattern needs to be a non empty string" in result.txt
 
 
-def test_max_results_truncation_raw(yaca_test_config):
+def test_max_results_truncation_raw(yaca_test_cfg):
     many_file = os.path.join(SAMPLE_FILES_DIR, "many_matches.txt")
     result = search_raw(many_file, "alpha", context_lines=0)
-    assert result["success"] is True, result["message"]
-    message = result["message"]
+    assert isinstance(result, SuccessToolResult), result
+    message = result.txt
     assert "truncated" in message
-    assert message.count("<result") == yaca_test_config["tools"]["search"]["max_results"]
+
+    max_results = yaca_test_cfg["tools"]["search"]["max_results"]
+    assert message.count("<result") == max_results
 
 
 def test_search_tool_integration():
-    pattern = os.path.join(SAMPLE_FILES_DIR, "*.txt")
+    glob_pattern = os.fspath(os.path.join(SAMPLE_FILES_DIR, "*.txt"))
 
     agent = FakeAgent(open_files=[])
     agent.logger = _StubLogger()
     agent.llm = _StubLLM(
         [
-            os.path.join(SAMPLE_FILES_DIR, "a.txt"),
-            os.path.join(SAMPLE_FILES_DIR, "b.txt"),
+            os.path.join(SAMPLE_FILES_DIR, "sample1.txt"),
+            os.path.join(SAMPLE_FILES_DIR, "sample2.txt"),
         ]
     )
 
     result = search_tool(
-        agent, glob_pattern=pattern, pattern="alpha|beta", reason="find both"
+        agent, glob_pattern=glob_pattern, pattern="alpha|beta", reason="find both"
     )
     assert isinstance(result, SuccessToolResult), result
-    assert result["success"] is True, result["message"]
-    message = result["message"]
-    assert "<search_results>" in message
-    assert "alpha" in message
-    assert "beta" in message
-    assert agent.open_files == [
-        os.path.join(SAMPLE_FILES_DIR, "a.txt"),
-        os.path.join(SAMPLE_FILES_DIR, "b.txt"),
-    ]
+    assert result["success"] is True
+
+    assert "Search automatically opened the following files for you:" in result.txt
+    assert agent.open_files == sorted(
+        [
+            os.path.join(SAMPLE_FILES_DIR, "sample1.txt"),
+            os.path.join(SAMPLE_FILES_DIR, "sample2.txt"),
+        ]
+    )

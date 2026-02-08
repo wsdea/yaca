@@ -61,7 +61,7 @@ def test_tool_caller_basic_tools():
     result = caller(
         "read_files",
         agent=agent,
-        files='["yaca/tools/read_file.py"]',
+        files='["yaca/tools/read_files.py"]',
     )
     assert isinstance(result, SuccessToolResult), f"read_files failed: {result}"
 
@@ -82,7 +82,7 @@ def test_tool_caller_basic_tools():
     assert isinstance(result, SuccessToolResult), f"search failed: {result}"
 
 
-def test_tool_caller_create_and_apply(tmp_path):
+def test_tool_caller_create_and_apply():
     """Test create_file and apply_diff tools."""
     all_tools = {
         "create_file": create_file_tool,
@@ -92,23 +92,25 @@ def test_tool_caller_create_and_apply(tmp_path):
     caller.set_tools(["create_file", "apply_diff"])
     agent = FakeAgent()
 
-    file_path = tmp_path / "test.txt"
+    file_path = "tests/tools/tool_caller/tmp_test.txt"
+    agent.open_files = [file_path]
 
-    result = caller(
-        "create_file",
-        agent=agent,
-        path=str(file_path),
-        content="Hello world",
-    )
-    assert isinstance(result, SuccessToolResult), f"create_file failed: {result}"
-    assert os.path.isfile(file_path), "File was not created"
+    try:
+        result = caller(
+            "create_file",
+            agent=agent,
+            path=file_path,
+            content="Hello world",
+        )
+        assert isinstance(result, SuccessToolResult), f"create_file failed: {result}"
+        assert os.path.isfile(file_path), "File was not created"
 
-    result = caller(
-        "apply_diff",
-        agent=agent,
-        file_path=str(file_path),
-        diffs=(
-            """
+        result = caller(
+            "apply_diff",
+            agent=agent,
+            file_path=file_path,
+            diffs=(
+                """
 <apply_diff>
 <file_path>{file_path}</file_path>
 <diffs>
@@ -116,14 +118,17 @@ def test_tool_caller_create_and_apply(tmp_path):
 <diff_replace_1>Hi</diff_replace_1>
 </diffs>
 </apply_diff>
-""".format(file_path=str(file_path)).strip()
-        ),
-    )
-    assert isinstance(result, SuccessToolResult), f"apply_diff failed: {result}"
+""".format(file_path=file_path).strip()
+            ),
+        )
+        assert isinstance(result, SuccessToolResult), f"apply_diff failed: {result}"
 
-    with open(file_path, "r", encoding="utf-8") as f:
-        content = f.read()
-    assert "Hi world" in content, "apply_diff did not modify the file as expected"
+        with open(file_path, "r", encoding="utf-8") as f:
+            content = f.read()
+        assert "Hi world" in content, "apply_diff did not modify the file as expected"
+    finally:
+        if os.path.isfile(file_path):
+            os.remove(file_path)
 
 
 def test_tool_caller_attempt_completion():
