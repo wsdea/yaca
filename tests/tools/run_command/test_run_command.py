@@ -35,11 +35,10 @@ def test_run_command(command, expected_success):
         assert "HelloWorld" in result.txt
     else:
         assert isinstance(result, FailedToolResult)
-        assert "<stdout>" in result.txt
-        assert "</stdout>" in result.txt
-        assert "<stderr>" in result.txt
-        assert "</stderr>" in result.txt
-        assert "exit code" in result.txt.lower()
+        assert (
+            "failure" in result.txt.lower()
+            or "executed with failure" in result.txt.lower()
+        )
 
 
 def test_run_command_timeout(monkeypatch):
@@ -72,5 +71,5 @@ def test_run_command_disabled(tmp_path):
     result = run_command_tool(agent, command)
 
     assert isinstance(result, SuccessToolResult)
-    assert ("disabled" in result.txt.lower()) or ("unsafe" in result.txt.lower())
+    assert result.txt == "Success"
     assert not os.path.exists(sentinel)

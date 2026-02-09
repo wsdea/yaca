@@ -1,7 +1,11 @@
 import os
 
+from yaca.config import get_cfg_value
 from yaca.tools.search import search_raw, search_tool
 from yaca.llm import FailedToolResult, SuccessToolResult
+
+
+REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../.."))
 
 
 class FakeAgent:
@@ -15,8 +19,7 @@ class FakeAgent:
 SAMPLE_FILES_DIR = os.path.join(os.path.dirname(__file__), "sample_files")
 assert os.path.exists(SAMPLE_FILES_DIR)
 
-REL_SAMPLE_FILES_DIR = os.path.relpath(SAMPLE_FILES_DIR, os.getcwd())
-REL_SAMPLE_FILES_DIR = "./" + REL_SAMPLE_FILES_DIR.lstrip("./")
+REL_SAMPLE_FILES_DIR = "tests/tools/search_tool/sample_files"
 
 
 class _StubLogger:
@@ -50,6 +53,7 @@ class _StubLLM:
 
 
 def test_successful_search_raw():
+    os.chdir(REPO_ROOT)
     glob_pattern = os.fspath(os.path.join(REL_SAMPLE_FILES_DIR, "*.txt"))
     result = search_raw(glob_pattern, "alpha|beta")
     assert isinstance(result, SuccessToolResult), result
@@ -60,13 +64,15 @@ def test_successful_search_raw():
 
 
 def test_empty_keywords_raw():
+    os.chdir(REPO_ROOT)
     glob_pattern = os.fspath(os.path.join(REL_SAMPLE_FILES_DIR, "*.txt"))
     result = search_raw(glob_pattern, "")
     assert isinstance(result, FailedToolResult)
     assert "non-empty" in result.txt or "non empty" in result.txt
 
 
-def test_max_results_truncation_raw(yaca_test_cfg):
+def test_max_results_truncation_raw():
+    os.chdir(REPO_ROOT)
     many_file = os.path.join(REL_SAMPLE_FILES_DIR, "many_matches.txt")
     result = search_raw(many_file, "alpha", context_lines=0)
     assert isinstance(result, SuccessToolResult), result
@@ -74,11 +80,12 @@ def test_max_results_truncation_raw(yaca_test_cfg):
 
     assert "truncat" in message.lower()
 
-    max_results = yaca_test_cfg["tools"]["search"]["max_results"]
+    max_results = get_cfg_value("tools.search.max_results", int)
     assert message.count("<result") == max_results
 
 
 def test_search_tool_integration():
+    os.chdir(REPO_ROOT)
     glob_pattern = os.fspath(os.path.join(REL_SAMPLE_FILES_DIR, "*.txt"))
 
     agent = FakeAgent(open_files=[], CWD=os.getcwd())

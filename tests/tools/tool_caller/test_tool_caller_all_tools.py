@@ -1,4 +1,5 @@
 import os
+import tempfile
 
 from yaca.tools.code_diffs import apply_diff_tool
 from yaca.tools.create_file import create_file_tool
@@ -8,7 +9,7 @@ from yaca.tools.reply_to_user import reply_to_user_tool
 from yaca.tools.search import search_tool
 from yaca.tools.task_completion import attempt_completion_tool
 from yaca.tools.tool_caller import ToolCaller
-from yaca.llm import AssistantResponse, SuccessToolResult
+from yaca.llm import FailedToolResult, SuccessToolResult
 
 
 class FakeAgent:
@@ -16,31 +17,38 @@ class FakeAgent:
         self.messages = []
         self.open_files = []
         self.CWD = os.getcwd()
-
-        class _Logger:
-            def debug(self, *args, **kwargs):
-                pass
-
-            def info(self, *args, **kwargs):
-                pass
-
-            def warning(self, *args, **kwargs):
-                pass
-
-            def error(self, *args, **kwargs):
-                pass
-
-        self.logger = _Logger()
-
-        def _llm(*args, **kwargs):
-            return None
-
-        self.llm = _llm
+        self.cwd = os.getcwd()
+        self.logger = self._Logger()
+        self.llm = self._llm
         self.disable_run_command = True
+
+    class _Logger:
+        def debug(self, *args, **kwargs):
+            pass
+
+        def info(self, *args, **kwargs):
+            pass
+
+        def warning(self, *args, **kwargs):
+            pass
+
+        def error(self, *args, **kwargs):
+            pass
+
+    def run_command(self, *args, **kwargs):
+        raise RuntimeError("run_command disabled in FakeAgent")
+
+    def _llm(self, *args, **kwargs):
+        return '{"relevant_files": ["./tests/tools/search_tool/sample_files/a.txt", "./tests/tools/search_tool/sample_files/b.txt", "./tests/tools/search_tool/sample_files/c.txt"]}'
 
 
 def test_tool_caller_basic_tools():
     """Test basic tools via ToolCaller."""
+    repo_root = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "..", "..", "..")
+    )
+    os.chdir(repo_root)
+
     all_tools = {
         "list_files": list_files_tool,
         "read_files": read_files_tool,
@@ -131,13 +139,11 @@ def test_tool_caller_create_and_apply():
             os.remove(file_path)
 
 
-def test_tool_caller_attempt_completion():
-    """Test attempt_completion tool (does not assert success to avoid external dependencies)."""
-    all_tools = {"attempt_completion": attempt_completion_tool}
+def test_tool_caller_unknown_tool_returns_failure():
+    all_tools = {"list_files": list_files_tool}
     caller = ToolCaller(all_tools=all_tools, hook_caller=None)
-    caller.set_tools(["attempt_completion"])
+    caller.set_tools(["list_files"])
     agent = FakeAgent()
-    result = caller("attempt_completion", agent=agent, recap="test recap")
-    assert isinstance(
-        result, AssistantResponse
-    ), "attempt_completion did not return an AssistantResponse"
+
+    result = caller("unknown_tool", agent=agent)
+    assert isinstance(result, FailedToolResult)

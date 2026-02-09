@@ -50,7 +50,7 @@ def test_remove_path():
             assert isinstance(result, SuccessToolResult) is True
             assert agent.open_files == []
 
-            recycled_path = os.path.join(recycle_bin, os.path.abspath(file_path))
+            recycled_path = os.path.join(recycle_bin, file_path)
             assert os.path.exists(recycled_path) is True
         finally:
             os.chdir(old_cwd)

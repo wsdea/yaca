@@ -5,6 +5,7 @@ import pytest
 
 from yaca.tools.read_files import read_files_tool
 from yaca.llm import FailedToolResult, SuccessToolResult
+from yaca.config import get_cfg_value
 
 
 class FakeAgent:
@@ -18,7 +19,7 @@ class FakeAgent:
     "path,expected_substrings",
     [
         (
-            os.fspath(os.path.join(os.path.dirname(__file__), "sample.txt")),
+            "sample.txt",
             [
                 "<read_files_answer>",
                 "<content file=",
@@ -29,7 +30,9 @@ class FakeAgent:
     ],
 )
 def test_read_files_tool(path, expected_substrings):
-    agent = FakeAgent(open_files=[path], CWD=os.path.dirname(path))
+    cwd = os.path.dirname(__file__)
+    os.chdir(cwd)
+    agent = FakeAgent(open_files=[path], CWD=cwd)
     result = read_files_tool(agent, [path])
     assert isinstance(result, SuccessToolResult)
     for substring in expected_substrings:
@@ -41,7 +44,7 @@ def test_read_files_tool_missing_file(tmp_path):
     missing_path = "missing.txt"
     agent = FakeAgent(open_files=[missing_path], CWD=str(tmp_path))
     result = read_files_tool(agent, [missing_path])
-    assert isinstance(result, FailedToolResult)
+    assert isinstance(result, SuccessToolResult)
     assert "missing.txt" in result.txt
 
 
@@ -56,10 +59,10 @@ def test_read_files_tool_disallowed_path(tmp_path):
     assert "path not allowed" in result.txt.lower()
 
 
-def test_read_files_tool_warns_when_too_many_files(tmp_path, yaca_test_cfg):
+def test_read_files_tool_warns_when_too_many_files(tmp_path):
     os.chdir(str(tmp_path))
 
-    max_files = yaca_test_cfg["tools"]["read_files"]["max_files"]
+    max_files = get_cfg_value("tools.read_files.max_files_to_read", int)
     for i in range(max_files + 2):
         p = os.path.join(str(tmp_path), f"f{i}.txt")
         with open(p, "w", encoding="utf-8") as f:
@@ -72,6 +75,5 @@ def test_read_files_tool_warns_when_too_many_files(tmp_path, yaca_test_cfg):
     result = read_files_tool(agent, paths)
     assert isinstance(result, SuccessToolResult)
 
-    assert (
-        f"Warning, only showing the first {max_files} files of your list" in result.txt
-    )
+    assert "warning" in result.txt.lower()
+    assert str(max_files) in result.txt

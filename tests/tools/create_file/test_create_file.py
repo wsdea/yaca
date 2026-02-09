@@ -34,7 +34,7 @@ def test_create_file(tmp_path, filename, expected):
 
     result = create_file_tool(agent, target_path, expected)
     assert isinstance(result, SuccessToolResult)
-    assert target_path in result.message
+    assert target_path in result.txt
 
     read_result = read_file(target_path)
     assert read_result == expected
