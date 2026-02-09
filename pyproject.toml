@@ -45,7 +45,7 @@ where = ["."]
 include = ["yaca*"]
 
 [tool.setuptools.package-data]
-yaca = ["**/*.tcss", "**/*.txt"]
+yaca = ["**/*.tcss", "**/*.txt", "default_config.yaml"]
 
 [dependency-groups]
 dev = [

@@ -23,18 +23,10 @@ def _merging_dicts(base, override):
     return base
 
 
-def _find_project_root_default_config_path() -> str:
-    cwd = os.path.abspath(os.getcwd())
-    current = cwd
-    while True:
-        candidate = os.path.join(current, "default_config.yaml")
-        if os.path.isfile(candidate):
-            return candidate
-        parent = os.path.dirname(current)
-        if parent == current:
-            break
-        current = parent
-    return os.path.join(cwd, "default_config.yaml")
+def _load_default_config() -> dict:
+    p = os.path.join(os.path.dirname(__file__), "default_config.yaml")
+    assert os.path.exists(p)
+    return _loading_yaml(str(p))
 
 
 def _ensure_yaca_dir_in_cwd() -> str:
@@ -118,8 +110,7 @@ def _add_config_warning(message: str) -> None:
 
 
 def loading_config() -> dict:
-    default_config_path = _find_project_root_default_config_path()
-    default_cfg = _loading_yaml(default_config_path)
+    default_cfg = _load_default_config()
 
     yaca_dir = _ensure_yaca_dir_in_cwd()
     user_config_path = _ensure_user_config_exists(yaca_dir)

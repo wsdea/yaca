@@ -23,7 +23,7 @@ def read_files_limited(files, max_files):
     if n == 0:
         return "Provide a list of files to read"
 
-    if n > 5:
+    if n > max_files:
         message += f"Warning, only showing the first {max_files} files of your list"
         files = files[:max_files]
 
@@ -46,8 +46,13 @@ def read_files_limited(files, max_files):
 
 
 def read_file(path: str) -> str:
-    with open(path, "r", encoding="utf-8") as f:
-        content = f.read()
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            content = f.read()
+    except UnicodeDecodeError:
+        return "Cannot open file, not UTF-8"
+    except Exception as e:
+        raise Exception(f"{path=} {e=}")
     return content
 
 
