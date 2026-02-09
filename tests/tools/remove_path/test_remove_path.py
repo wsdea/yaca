@@ -26,7 +26,6 @@ class FakeAgent:
         self.logger = logger if logger is not None else FakeLogger()
 
 
-@pytest.mark.fast
 def test_remove_path():
     with tempfile.TemporaryDirectory() as tmpdir:
         old_cwd = os.getcwd()
