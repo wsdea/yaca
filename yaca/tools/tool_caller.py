@@ -23,9 +23,9 @@ class ToolCaller:
 
         for name, fun in self.ALL_TOOLS.items():
             sig = inspect.signature(fun)
-            assert "agent" in sig.parameters, (
-                f"`agent` parameter is missing for {name} : {sig.parameters}"
-            )
+            assert (
+                "agent" in sig.parameters
+            ), f"`agent` parameter is missing for {name} : {sig.parameters}"
 
     def add_tool(self, name, fun):
         self.ALL_TOOLS[name] = fun

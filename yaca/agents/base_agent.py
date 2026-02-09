@@ -1,6 +1,7 @@
 import os
 import sys
 import threading
+import time
 import uuid
 
 from ..llm import LLMClient
@@ -70,7 +71,9 @@ class BaseAgent:
 
         agent_logs_root = os.path.join(self.STATE_FOLDER, "agent_logs")
         os.makedirs(agent_logs_root, exist_ok=True)
-        self.AGENT_LOGS_FOLDER = os.path.join(agent_logs_root, f"{self.name}-{self.id}")
+        self.AGENT_LOGS_FOLDER = os.path.join(
+            agent_logs_root, f"{self.name}-{int(time.time())}-{self.id}"
+        )
 
         log_file_path = os.path.join(self.AGENT_LOGS_FOLDER, "debug.log")
         self.logger = Logger(log_file_path)

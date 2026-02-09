@@ -47,12 +47,12 @@ def start_coding_task_tool(
     todo_list: list[str],
 ):
     """
-    Tool to call when you have enough context to start coding. Write a todo list of what to do. The todo list must only contain coding tasks such as creating, editing or deleting coding files. The todo list must not include tasks such as searching for relevant files, understanding the codebase, etc. Do not add documentation or tests, except when specifically asked to. Do not include code blocks. Do not share the same relevant_files with another coding task you want to start.
+    Tool to call to start a coding task. The task is going to be done by someone else. Once done, you will get a recap from him. Write a todo list of what to do. The todo list must only contain items such as creating, editing or deleting coding files. The todo list must not include items such as searching for relevant files, understanding the codebase, etc. Do not add documentation or tests, except when specifically asked to. Do not include code blocks. Do not share the same relevant_files with another coding task you want to start.
 
     Args:
         - task_name (str) : Short title for the task
         - user_request (str) : Message of the user
-        - relevant_files (list[str]) : List of files to open or create to solve this task
+        - relevant_files (list[str]) : Minimum list of files (to read, edit or create) necessary for this task. The coder will only have access to these files.
         - todo_list (list[str]) : Ordered list of items to do
     """
     if not relevant_files:

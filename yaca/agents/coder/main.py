@@ -1,5 +1,4 @@
 from ...llm.messages import HelperMessage, StarterPrompt, UserInput
-from ...tools.list_files import list_files_tool
 from ...tools.read_files import read_files_limited
 from ..base_agent import BaseAgent
 
@@ -19,7 +18,7 @@ class YacaCoder(BaseAgent):
             "apply_diff",
             "create_file",
             "remove_path",
-            # "cannot_do",
+            "cannot_do",
             "done_coding",
         )
 
@@ -82,9 +81,9 @@ class YacaCoder(BaseAgent):
             last_user_input_id = None
 
         assert last_user_input_id is not None
-        assert isinstance(self.conversation[last_user_input_id], UserInput), (
-            self.conversation[last_user_input_id]
-        )
+        assert isinstance(
+            self.conversation[last_user_input_id], UserInput
+        ), self.conversation[last_user_input_id]
 
         # adding helper messages around user input
         self.conversation = (

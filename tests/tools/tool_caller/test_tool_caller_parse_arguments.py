@@ -49,8 +49,7 @@ def test_parse_arguments_missing_required():
     }
     with pytest.raises(ToolParsingError) as exc:
         caller.parse_arguments(dummy_func, **raw_kwargs)
-    assert "missing" in str(exc.value).lower()
-    assert "c" in str(exc.value)
+    assert "Missing required argument: c" in str(exc.value)
 
 
 def test_parse_arguments_invalid_int():
@@ -58,8 +57,7 @@ def test_parse_arguments_invalid_int():
     raw_kwargs = {"agent": "agent", "a": "not-an-int", "b": "true", "c": "item"}
     with pytest.raises(ToolParsingError) as exc:
         caller.parse_arguments(dummy_func, **raw_kwargs)
-    assert "int" in str(exc.value).lower()
-    assert "a" in str(exc.value)
+    assert "Cannot parse int for argument a" in str(exc.value)
 
 
 def test_parse_arguments_invalid_bool():
@@ -67,8 +65,7 @@ def test_parse_arguments_invalid_bool():
     raw_kwargs = {"agent": "agent", "a": "10", "b": "maybe", "c": "item"}
     with pytest.raises(ToolParsingError) as exc:
         caller.parse_arguments(dummy_func, **raw_kwargs)
-    assert "bool" in str(exc.value).lower()
-    assert "b" in str(exc.value)
+    assert "Cannot parse bool for argument b" in str(exc.value)
 
 
 def test_parse_arguments_list_from_item_tags():
@@ -122,3 +119,25 @@ def test_parse_arguments_list_item_tags_does_not_affect_str():
     raw_kwargs = {"agent": "agent", "s": "<item>a</item><item>b</item>"}
     parsed = caller.parse_arguments(func_with_str, **raw_kwargs)
     assert parsed["s"] == "<item>a</item><item>b</item>"
+
+
+def test_parse_arguments_list_xml_unescapes_html_entities():
+    caller = ToolCaller(all_tools={"dummy": dummy_tool}, hook_caller=None)
+    raw_kwargs = {
+        "agent": "agent",
+        "a": "42",
+        "b": "true",
+        "c": """
+            <foo>a & b</foo>
+            <foo>c < d</foo>
+        """,
+    }
+    parsed = caller.parse_arguments(dummy_func, **raw_kwargs)
+    assert parsed["c"] == ["a & b", "c < d"]
+
+
+def test_parse_arguments_list_newline_fallback_strips_dash_prefix():
+    caller = ToolCaller(all_tools={"dummy": dummy_tool}, hook_caller=None)
+    raw_kwargs = {"agent": "agent", "a": "1", "b": "true", "c": "- a\n- b\nc"}
+    parsed = caller.parse_arguments(dummy_func, **raw_kwargs)
+    assert parsed["c"] == ["a", "b", "c"]
