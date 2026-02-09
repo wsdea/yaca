@@ -2,7 +2,6 @@ import os
 
 import yaml
 
-_CACHED_CONFIG = None
 _CACHED_CONFIG_WARNINGS = []
 _CONFIG_WARNINGS_SET = set()
 
@@ -109,7 +108,7 @@ def _add_config_warning(message: str) -> None:
     _CACHED_CONFIG_WARNINGS.append(message)
 
 
-def loading_config() -> dict:
+def load_cfg() -> dict:
     default_cfg = _load_default_config()
 
     yaca_dir = _ensure_yaca_dir_in_cwd()
@@ -139,13 +138,6 @@ def loading_config() -> dict:
     return merged
 
 
-def get_cfg() -> dict:
-    global _CACHED_CONFIG
-    if _CACHED_CONFIG is None:
-        _CACHED_CONFIG = loading_config()
-    return _CACHED_CONFIG
-
-
 def get_config_warnings() -> list[str]:
     return list(_CACHED_CONFIG_WARNINGS)
 
@@ -154,15 +146,15 @@ def get_cfg_value(path: str, expected_type: type = None):
     if not isinstance(path, str) or path.strip() == "":
         raise ValueError("path must be a non-empty string")
 
-    cfg = get_cfg()
+    cfg = load_cfg()
 
     current = cfg
     for part in path.split("."):
         if not isinstance(current, dict) or part not in current:
-            raise Exception(f"Error loading {path} in config")
+            raise Exception(f"Error loading {path} in config. Cfg :\n{cfg}")
         current = current[part]
     if expected_type is not None and not isinstance(current, expected_type):
         raise Exception(
-            f"Error parsing config. Expected {path!r} to be of type {expected_type}, but got {type(current)} instead"
+            f"Error parsing config. Expected {path!r} to be of type {expected_type}, but got {type(current)} instead. Cfg :\n{cfg}"
         )
     return current
