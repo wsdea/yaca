@@ -3,6 +3,11 @@ import shutil
 
 import pytest
 
+USER_CONFIG_YAML = """llm:
+  model: "openai/gpt-5.2"
+  api_key_env: "OPENAI_API_KEY"
+"""
+
 
 def pytest_ignore_collect(collection_path, config):
     """

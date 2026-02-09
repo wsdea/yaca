@@ -6,6 +6,8 @@ import pytest
 
 from yaca.agents import YacaPlanner
 
+from ..conftest import USER_CONFIG_YAML
+
 PROJECTS_DIR = os.path.join(os.path.dirname(__file__))
 PROJECTS_MIRROR_DIR = os.path.join(os.path.dirname(__file__), "..", "projects_mirror")
 
@@ -15,11 +17,6 @@ FAST_PROJECTS = [
     "pathlib_to_ospath",
     "hello_world_human",
 ]
-
-USER_CONFIG_YAML = """llm:
-  model: "openai/gpt-5.2"
-  api_key_env: "OPENAI_API_KEY"
-"""
 
 
 def discover_projects() -> list[str]:
