@@ -15,6 +15,9 @@ class FakeAgent:
 SAMPLE_FILES_DIR = os.path.join(os.path.dirname(__file__), "sample_files")
 assert os.path.exists(SAMPLE_FILES_DIR)
 
+REL_SAMPLE_FILES_DIR = os.path.relpath(SAMPLE_FILES_DIR, os.getcwd())
+REL_SAMPLE_FILES_DIR = "./" + REL_SAMPLE_FILES_DIR.lstrip("./")
+
 
 class _StubLogger:
     def __init__(self):
@@ -47,7 +50,7 @@ class _StubLLM:
 
 
 def test_successful_search_raw():
-    glob_pattern = os.fspath(os.path.join(SAMPLE_FILES_DIR, "*.txt"))
+    glob_pattern = os.fspath(os.path.join(REL_SAMPLE_FILES_DIR, "*.txt"))
     result = search_raw(glob_pattern, "alpha|beta")
     assert isinstance(result, SuccessToolResult), result
     message = result.txt
@@ -57,14 +60,14 @@ def test_successful_search_raw():
 
 
 def test_empty_keywords_raw():
-    glob_pattern = os.fspath(os.path.join(SAMPLE_FILES_DIR, "*.txt"))
+    glob_pattern = os.fspath(os.path.join(REL_SAMPLE_FILES_DIR, "*.txt"))
     result = search_raw(glob_pattern, "")
     assert isinstance(result, FailedToolResult)
     assert "pattern needs to be a non empty string" in result.txt
 
 
 def test_max_results_truncation_raw(yaca_test_cfg):
-    many_file = os.path.join(SAMPLE_FILES_DIR, "many_matches.txt")
+    many_file = os.path.join(REL_SAMPLE_FILES_DIR, "many_matches.txt")
     result = search_raw(many_file, "alpha", context_lines=0)
     assert isinstance(result, SuccessToolResult), result
     message = result.txt
@@ -75,14 +78,14 @@ def test_max_results_truncation_raw(yaca_test_cfg):
 
 
 def test_search_tool_integration():
-    glob_pattern = os.fspath(os.path.join(SAMPLE_FILES_DIR, "*.txt"))
+    glob_pattern = os.fspath(os.path.join(REL_SAMPLE_FILES_DIR, "*.txt"))
 
-    agent = FakeAgent(open_files=[])
+    agent = FakeAgent(open_files=[], CWD=os.getcwd())
     agent.logger = _StubLogger()
     agent.llm = _StubLLM(
         [
-            os.path.join(SAMPLE_FILES_DIR, "sample1.txt"),
-            os.path.join(SAMPLE_FILES_DIR, "sample2.txt"),
+            os.path.join(REL_SAMPLE_FILES_DIR, "sample1.txt"),
+            os.path.join(REL_SAMPLE_FILES_DIR, "sample2.txt"),
         ]
     )
 
@@ -95,7 +98,7 @@ def test_search_tool_integration():
     assert "Search automatically opened the following files for you:" in result.txt
     assert agent.open_files == sorted(
         [
-            os.path.join(SAMPLE_FILES_DIR, "sample1.txt"),
-            os.path.join(SAMPLE_FILES_DIR, "sample2.txt"),
+            os.path.relpath(os.path.join(SAMPLE_FILES_DIR, "sample1.txt"), agent.CWD),
+            os.path.relpath(os.path.join(SAMPLE_FILES_DIR, "sample2.txt"), agent.CWD),
         ]
     )

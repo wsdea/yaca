@@ -13,9 +13,16 @@ class FakeLogger:
 
 
 class FakeAgent:
-    def __init__(self, recycle_bin_path: str, open_files: list[str], logger=None):
+    def __init__(
+        self,
+        recycle_bin_path: str,
+        open_files: list[str],
+        cwd: str,
+        logger=None,
+    ):
         self.RECYCLE_BIN = recycle_bin_path
         self.open_files = open_files
+        self.CWD = cwd
         self.logger = logger if logger is not None else FakeLogger()
 
 
@@ -32,7 +39,11 @@ def test_remove_path():
 
             recycle_bin = os.path.join(tmpdir, ".recycle_bin")
             relative_path = os.path.join("src", "hello.txt")
-            agent = FakeAgent(recycle_bin_path=recycle_bin, open_files=[relative_path])
+            agent = FakeAgent(
+                recycle_bin_path=recycle_bin,
+                open_files=[relative_path],
+                cwd=tmpdir,
+            )
 
             result = remove_path_tool(agent, relative_path)
 

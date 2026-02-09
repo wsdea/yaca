@@ -5,10 +5,17 @@ from yaca.tools.read_files import read_file
 from yaca.llm import FailedToolResult, SuccessToolResult
 
 
+class FakeLogger:
+    def debug(self, *args, **kwargs):
+        pass
+
+
 class FakeAgent:
     def __init__(self, open_files, CWD=None, logger=None, disable_run_command=False):
         self.open_files = open_files
         self.CWD = CWD
+        if logger is None:
+            logger = FakeLogger()
         self.logger = logger
         self.disable_run_command = disable_run_command
 

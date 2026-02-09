@@ -57,12 +57,12 @@ def test_run_command_timeout(monkeypatch):
 
 
 def test_run_command_disabled(tmp_path):
-    sentinel = tmp_path / "sentinel.txt"
-    command = f'python -c "open(r"{str(sentinel)}", "w").write("x")"'
+    sentinel = os.path.join(str(tmp_path), "sentinel.txt")
+    command = f'python -c "open(r"{sentinel}", "w").write("x")"'
 
     agent = FakeAgent(disable_run_command=True)
     result = run_command_tool(agent, command)
 
     assert isinstance(result, SuccessToolResult)
-    assert result.txt != ""
-    assert not os.path.exists(str(sentinel))
+    assert result.txt == "Success"
+    assert not os.path.exists(sentinel)

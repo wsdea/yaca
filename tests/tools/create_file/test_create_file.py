@@ -34,6 +34,9 @@ def test_create_file(tmp_path, filename, expected):
 
     result = create_file_tool(agent, target_path, expected)
     assert isinstance(result, SuccessToolResult)
+    assert (
+        result.message == f"{target_path} has been written to and added to open files."
+    )
 
     read_result = read_file(target_path)
     assert read_result == expected
