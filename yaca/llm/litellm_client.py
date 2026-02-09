@@ -120,9 +120,9 @@ class LLMClient:
             messages = [{"role": "user", "content": text_inputs}]
         elif isinstance(text_inputs, list):
             for dic in text_inputs:
-                assert isinstance(
-                    dic, dict
-                ), "type of text_inputs should be a list of dict with 'role' and 'content' keys"
+                assert isinstance(dic, dict), (
+                    "type of text_inputs should be a list of dict with 'role' and 'content' keys"
+                )
                 assert dic.get("role") in [
                     "user",
                     "system",

@@ -34,7 +34,7 @@ def read_files_limited(files, max_files):
         else:
             try:
                 content = read_file(f)
-            except (FileNotFoundError, PermissionError) as e:
+            except (FileNotFoundError, PermissionError, UnicodeDecodeError) as e:
                 content = f"\\nError reading {f} ({e!r})"
 
         if not content.strip():
@@ -46,13 +46,8 @@ def read_files_limited(files, max_files):
 
 
 def read_file(path: str) -> str:
-    try:
-        with open(path, "r", encoding="utf-8") as f:
-            content = f.read()
-    except UnicodeDecodeError:
-        return "Cannot open file, not UTF-8"
-    except Exception as e:
-        raise Exception(f"{path=} {e=}")
+    with open(path, "r", encoding="utf-8") as f:
+        content = f.read()
     return content
 
 
