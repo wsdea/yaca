@@ -1,7 +1,7 @@
 import pytest
 
 # Instanciating once for the whole module
-from yaca.tools.tool_caller import ToolCaller
+from yaca.tools.tool_caller import ToolCaller, ToolParsingError
 
 
 def dummy_tool(agent):
@@ -93,5 +93,5 @@ def test_tool_parsing_success(xml, expected):
     ],
 )
 def test_tool_parsing_failure(xml):
-    with pytest.raises(Exception):
+    with pytest.raises(ToolParsingError):
         tc.text_to_kwargs(xml)

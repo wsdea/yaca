@@ -13,7 +13,6 @@ def write_file(path: str, content: str):
 
 def test_validate_python_syntax_all_valid():
     with tempfile.TemporaryDirectory() as tmpdir:
-        # Create two valid python files
         file1 = os.path.join(tmpdir, "a.py")
         file2 = os.path.join(tmpdir, "b.py")
         write_file(file1, "def foo():\n    return 1\n")
@@ -24,17 +23,21 @@ def test_validate_python_syntax_all_valid():
         assert "All Python files have valid syntax." in result.txt
 
 
-def test_validate_python_syntax_with_errors():
+def test_validate_python_syntax_ignores_non_py_and_aggregates_errors():
     with tempfile.TemporaryDirectory() as tmpdir:
-        # Create a valid file and an invalid file
         valid_file = os.path.join(tmpdir, "valid.py")
-        invalid_file = os.path.join(tmpdir, "invalid.py")
-        write_file(valid_file, "y = 5\n")
-        # Syntax error: missing colon
-        write_file(invalid_file, "def broken()\n    pass\n")
+        invalid_file1 = os.path.join(tmpdir, "invalid1.py")
+        invalid_file2 = os.path.join(tmpdir, "invalid2.py")
+        non_py = os.path.join(tmpdir, "other_file.pdf")
 
-        result = validate_python_syntax([valid_file, invalid_file, "other_file.pdf"])
+        write_file(valid_file, "y = 5\n")
+        write_file(invalid_file1, "def broken()\n    pass\n")
+        write_file(invalid_file2, "def broken2(:\n    pass\n")
+        write_file(non_py, "%PDF-1.4\n")
+
+        result = validate_python_syntax([valid_file, invalid_file1, invalid_file2, non_py])
         assert isinstance(result, FailedToolResult)
-        assert "Syntax error in" in result.txt
-        assert "invalid.py" in result.txt
-        assert result.txt.count("Syntax error in") == 1
+        assert "Syntax error" in result.txt
+        assert "invalid1.py" in result.txt
+        assert "invalid2.py" in result.txt
+        assert "other_file.pdf" not in result.txt

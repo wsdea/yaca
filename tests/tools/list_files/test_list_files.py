@@ -47,7 +47,8 @@ def test_list_files():
     assert "- foo/" in output or "foo/" in output
     assert "- foo2/" in output or "foo2/" in output
     assert "foo2\n" not in output
-    assert "<" in output and "hidden items" in output
+    assert "hidden items" in output
+    assert "<" in output
 
     matched_files = list_files(
         "./tests/tools/list_files/foo/**", ignore_patterns=["bar*"]

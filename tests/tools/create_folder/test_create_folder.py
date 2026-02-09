@@ -18,7 +18,7 @@ def test_create_folder(tmp_path, folder_name):
     os.chdir(str(tmp_path))
     target_path = folder_name
 
-    agent = FakeAgent(open_files=[], CWD=str(tmp_path))
+    agent = FakeAgent(open_files=[target_path], CWD=str(tmp_path))
 
     result = create_folder_tool(agent, target_path)
     assert isinstance(result, SuccessToolResult)

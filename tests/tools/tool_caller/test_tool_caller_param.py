@@ -12,6 +12,7 @@ from yaca.llm import AssistantResponse, SuccessToolResult
 class FakeAgent:
     def __init__(self):
         self.messages = []
+        self.open_files = []
 
         class _Logger:
             def debug(self, *args, **kwargs):
@@ -32,6 +33,7 @@ class FakeAgent:
             return None
 
         self.llm = _llm
+        self.disable_run_command = True
 
 
 @pytest.mark.parametrize(

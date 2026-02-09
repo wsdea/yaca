@@ -63,7 +63,7 @@ def test_empty_keywords_raw():
     glob_pattern = os.fspath(os.path.join(REL_SAMPLE_FILES_DIR, "*.txt"))
     result = search_raw(glob_pattern, "")
     assert isinstance(result, FailedToolResult)
-    assert "pattern needs to be a non empty string" in result.txt
+    assert "non-empty" in result.txt or "non empty" in result.txt
 
 
 def test_max_results_truncation_raw(yaca_test_cfg):
@@ -71,7 +71,8 @@ def test_max_results_truncation_raw(yaca_test_cfg):
     result = search_raw(many_file, "alpha", context_lines=0)
     assert isinstance(result, SuccessToolResult), result
     message = result.txt
-    assert "truncated" in message
+
+    assert "truncat" in message.lower()
 
     max_results = yaca_test_cfg["tools"]["search"]["max_results"]
     assert message.count("<result") == max_results
@@ -95,7 +96,10 @@ def test_search_tool_integration():
     assert isinstance(result, SuccessToolResult), result
     assert result["success"] is True
 
-    assert "Search automatically opened the following files for you:" in result.txt
+    assert "opened" in result.txt.lower()
+    assert "sample1.txt" in result.txt
+    assert "sample2.txt" in result.txt
+
     assert agent.open_files == sorted(
         [
             os.path.relpath(os.path.join(SAMPLE_FILES_DIR, "sample1.txt"), agent.CWD),

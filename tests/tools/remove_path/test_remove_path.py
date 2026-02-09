@@ -38,19 +38,19 @@ def test_remove_path():
                 f.write("hello")
 
             recycle_bin = os.path.join(tmpdir, ".recycle_bin")
-            relative_path = os.path.join("src", "hello.txt")
+            relative_glob = os.path.join("src", "*.txt")
             agent = FakeAgent(
                 recycle_bin_path=recycle_bin,
-                open_files=[relative_path],
+                open_files=[file_path],
                 cwd=tmpdir,
             )
 
-            result = remove_path_tool(agent, relative_path)
+            result = remove_path_tool(agent, relative_glob)
 
             assert isinstance(result, SuccessToolResult) is True
             assert agent.open_files == []
 
-            recycled_path = os.path.join(recycle_bin, relative_path)
+            recycled_path = os.path.join(recycle_bin, file_path)
             assert os.path.exists(recycled_path) is True
         finally:
             os.chdir(old_cwd)

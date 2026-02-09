@@ -3,8 +3,8 @@ import subprocess
 
 import pytest
 
-from yaca.tools.run_command import run_command_tool
 from yaca.llm import FailedToolResult, SuccessToolResult
+from yaca.tools.run_command import run_command_tool
 
 
 class FakeAgent:
@@ -18,22 +18,25 @@ class FakeTimeoutExpired(subprocess.TimeoutExpired):
 
 
 @pytest.mark.parametrize(
-    "command,expected_success,expected_substring",
+    "command,expected_success",
     [
-        ("echo HelloWorld", True, "HelloWorld"),
-        ('python -c "import sys; sys.exit(1)"', False, ""),
+        ("echo HelloWorld", True),
+        ('python -c "import sys; sys.exit(1)"', False),
     ],
 )
-def test_run_command(command, expected_success, expected_substring):
+def test_run_command(command, expected_success):
     agent = FakeAgent(disable_run_command=False)
     result = run_command_tool(agent, command)
 
     if expected_success:
         assert isinstance(result, SuccessToolResult)
-        assert expected_substring in result.txt
+        assert "stdout:" in result.txt
+        assert "HelloWorld" in result.txt
     else:
         assert isinstance(result, FailedToolResult)
-        assert result.txt != ""
+        assert "stdout:" in result.txt
+        assert "stderr:" in result.txt
+        assert "exit code" in result.txt.lower()
 
 
 def test_run_command_timeout(monkeypatch):
@@ -51,8 +54,10 @@ def test_run_command_timeout(monkeypatch):
     result = run_command_tool(agent, "echo Hello", timeout=1)
 
     assert isinstance(result, FailedToolResult)
-    assert "timed out" in result.txt
+    assert "timed out" in result.txt.lower()
+    assert "stdout:" in result.txt
     assert "partial out" in result.txt
+    assert "stderr:" in result.txt
     assert "partial err" in result.txt
 
 
@@ -64,5 +69,5 @@ def test_run_command_disabled(tmp_path):
     result = run_command_tool(agent, command)
 
     assert isinstance(result, SuccessToolResult)
-    assert result.txt == "Success"
+    assert "disabled" in result.txt.lower()
     assert not os.path.exists(sentinel)

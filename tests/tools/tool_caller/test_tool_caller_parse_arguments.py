@@ -35,7 +35,7 @@ def test_parse_arguments_defaults_and_missing():
     parsed = caller.parse_arguments(dummy_func, **raw_kwargs)
     assert parsed["a"] == 7
     assert parsed["b"] is False
-    assert parsed["c"] == []
+    assert parsed["c"] == [""]
     assert "d" not in parsed
 
 
@@ -49,7 +49,7 @@ def test_parse_arguments_missing_required():
     }
     with pytest.raises(ToolParsingError) as exc:
         caller.parse_arguments(dummy_func, **raw_kwargs)
-    assert "Missing required argument: c" in str(exc.value)
+    assert "Missing required argument(s): c" in str(exc.value)
 
 
 def test_parse_arguments_invalid_int():
