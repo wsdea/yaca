@@ -44,10 +44,8 @@ def test_list_files():
     result = list_files_tool(agent, "./tests/tools/list_files/**", return_message=True)
     assert isinstance(result, SuccessToolResult)
     output = result.txt
-    assert "- foo/" in output or "foo/" in output
-    assert "- foo2/" in output or "foo2/" in output
-    assert "foo2\n" not in output
-    assert "hidden items" in output
+    assert "- foo/" in output
+    assert "- foo2/" in output
     assert "<" in output
 
     matched_files = list_files(

@@ -96,7 +96,7 @@ def test_search_tool_integration():
     assert isinstance(result, SuccessToolResult), result
     assert result["success"] is True
 
-    assert "opened" in result.txt.lower()
+    assert "Search automatically opened the following files for you:" in result.txt
     assert "sample1.txt" in result.txt
     assert "sample2.txt" in result.txt
 

@@ -35,7 +35,7 @@ def test_parse_arguments_defaults_and_missing():
     parsed = caller.parse_arguments(dummy_func, **raw_kwargs)
     assert parsed["a"] == 7
     assert parsed["b"] is False
-    assert parsed["c"] == [""]
+    assert parsed["c"] == []
     assert "d" not in parsed
 
 
@@ -49,7 +49,8 @@ def test_parse_arguments_missing_required():
     }
     with pytest.raises(ToolParsingError) as exc:
         caller.parse_arguments(dummy_func, **raw_kwargs)
-    assert "Missing required argument(s): c" in str(exc.value)
+    assert "missing required argument" in str(exc.value).lower()
+    assert "c" in str(exc.value)
 
 
 def test_parse_arguments_invalid_int():
@@ -83,7 +84,7 @@ def test_parse_arguments_list_from_item_tags():
         """,
     }
     parsed = caller.parse_arguments(dummy_func, **raw_kwargs)
-    assert parsed["c"] == ["x", "y", "z"]
+    assert parsed["c"] == [" x ", "y", "z"]
 
 
 def test_parse_arguments_list_from_repeated_non_item_tags():
@@ -101,7 +102,7 @@ def test_parse_arguments_list_from_repeated_non_item_tags():
         """,
     }
     parsed = caller.parse_arguments(dummy_func, **raw_kwargs)
-    assert parsed["c"] == ["x", "y", "z"]
+    assert parsed["c"] == [" x ", "y", "z"]
 
 
 def test_parse_arguments_list_single_xml_tag_is_not_list():

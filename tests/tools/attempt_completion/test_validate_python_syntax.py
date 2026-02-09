@@ -35,7 +35,9 @@ def test_validate_python_syntax_ignores_non_py_and_aggregates_errors():
         write_file(invalid_file2, "def broken2(:\n    pass\n")
         write_file(non_py, "%PDF-1.4\n")
 
-        result = validate_python_syntax([valid_file, invalid_file1, invalid_file2, non_py])
+        result = validate_python_syntax(
+            [valid_file, invalid_file1, invalid_file2, non_py]
+        )
         assert isinstance(result, FailedToolResult)
         assert "Syntax error" in result.txt
         assert "invalid1.py" in result.txt
