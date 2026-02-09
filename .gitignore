@@ -6,4 +6,5 @@
 .env
 tests/projects_mirror
 build
+dist
 *.venv
